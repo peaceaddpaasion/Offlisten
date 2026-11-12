@@ -1,0 +1,9 @@
+# Runtime pins, measured on Windows 11 + CPython 3.13 (x86-64).
+# Nothing here is optional at runtime: soundcard does WASAPI loopback capture,
+# pystray + pillow draw the tray icon, sherpa-onnx does the inference.
+sherpa-onnx==2.0.0
+onnxruntime==1.31.0
+numpy==2.5.4
+soundcard==0.4.6
+pillow==13.0.0
+pystray==0.19.5

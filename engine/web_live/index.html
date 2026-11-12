@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本地转写 · 实时文本</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    max-width: 880px;
+    padding: 24px 20px 40px;
+    background: #f5f6f7;
+    color: #1c2126;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #d3d8dd;
+    padding-bottom: 12px;
+  }
+  h1 { margin: 0; font-size: 19px; font-weight: 600; }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #3c4650; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #a33a32; display: inline-block; }
+  .dot.ok { background: #276f47; }
+  .meeting {
+    margin: 14px 0 0;
+    padding: 8px 10px;
+    border: 1px solid #d3d8dd;
+    background: #ffffff;
+    font-size: 13px;
+    color: #2c363f;
+    line-height: 1.6;
+  }
+  .lede { margin: 14px 0 18px; font-size: 13px; color: #3c4650; line-height: 1.7; }
+  .control {
+    margin: 14px 0 18px;
+    padding: 12px 14px;
+    border: 1px solid #d3d8dd;
+    background: #ffffff;
+  }
+  .control-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .control h2 { margin: 0; font-size: 15px; font-weight: 600; }
+  #controlMode { font-size: 13px; color: #2c363f; }
+  .control-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .control-row label { font-size: 13px; color: #2c363f; }
+  select {
+    font: inherit;
+    font-size: 13px;
+    padding: 5px 8px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+  }
+  #runBtn { font-weight: 600; }
+  #runBtn.running { background: #f3e3e1; border-color: #b4796f; }
+  .control p { margin: 10px 0 0; font-size: 13px; color: #3c4650; line-height: 1.6; }
+  #readonlyNote { margin: 8px 0 0; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  button {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+    cursor: pointer;
+  }
+  button:hover { background: #e9edf0; }
+  button:active { background: #dde3e8; }
+  .pending {
+    background: #e9edf0;
+    border-left: 3px solid #7b858f;
+    padding: 8px 12px;
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #3c4650;
+  }
+  .seg { padding: 7px 0; border-bottom: 1px solid #e3e7eb; }
+  .seg .ts {
+    font-family: "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+    font-size: 13px;
+    color: #4c5863;
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+  .seg .txt { font-size: 15px; }
+  .seg.trans { padding-left: 16px; border-left: 3px solid #7b858f; }
+  .seg.trans .txt { color: #38424b; }
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    color: #2c363f;
+    background: #dfe4e8;
+    border-radius: 3px;
+    padding: 0 5px;
+    margin-right: 8px;
+  }
+  .seg.hidden { display: none; }
+  #empty { font-size: 13px; color: #3c4650; margin: 18px 0; }
+  footer {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-top: 1px solid #d3d8dd;
+    margin-top: 26px;
+    padding-top: 10px;
+    font-size: 13px;
+    color: #3c4650;
+  }
+  #count { font-weight: 600; color: #1c2126; white-space: nowrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>本地转写 · 实时文本</h1>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">正在连接</span></div>
+</header>
+
+<div class="meeting" id="meeting"></div>
+
+<p class="lede">文本来自本机离线 ASR，只在 127.0.0.1 上传输。本页不调用任何模型，也不持有 apikey。要交给 AI 处理，就复制全文，或让你浏览器里已有的 AI 插件读取本页。</p>
+
+<section class="control" id="control" hidden>
+  <div class="control-head">
+    <h2>转写控制</h2>
+    <span id="controlMode">正在读取运行状态</span>
+  </div>
+  <div id="controlBody" hidden>
+    <div class="control-row">
+      <button id="runBtn" type="button">开始转写</button>
+      <label for="engineSel">引擎</label>
+      <select id="engineSel">
+        <option value="sensevoice">SenseVoice（中英双语）</option>
+        <option value="zipformer">Zipformer（英文低延迟）</option>
+      </select>
+      <label for="sourceSel">音源</label>
+      <select id="sourceSel">
+        <option value="loopback">系统声音</option>
+        <option value="mic">麦克风</option>
+      </select>
+      <label><input id="translateChk" type="checkbox"> 译文</label>
+    </div>
+    <p id="overlayNote"></p>
+    <p id="controlHint"></p>
+  </div>
+  <p id="readonlyNote" hidden></p>
+</section>
+
+<div class="tools">
+  <button id="copyBtn" type="button">复制全文</button>
+  <button id="idBtn" type="button" title="把这场会议的编号与时间复制给 AI 侧栏提问用">复制会议 ID</button>
+  <button id="mdBtn" type="button">导出 Markdown</button>
+  <button id="transBtn" type="button">隐藏译文</button>
+  <button id="clearBtn" type="button" title="仅清屏，服务端记录不变">清空显示</button>
+  <button id="historyBtn" type="button">历史会议</button>
+  <button id="archiveBtn" type="button" title="打开这场会议自己的存档页">本场存档页</button>
+</div>
+
+<main>
+  <div class="pending" id="pending" hidden></div>
+  <div id="segments"></div>
+  <p id="empty">服务已连接，等待第一段转写。开始说话，或用 --replay 回放一份已保存的文字稿。</p>
+</main>
+
+<footer>
+  <span id="count">0 段</span>
+  <span>事实源只含已定稿原文与译文；未定稿的流式片段不进入复制和导出。译文由 Argos 离线机器翻译生成，不是原文。</span>
+</footer>
+
+<script>window.__WHISPER_BOOTSTRAP__ = [];</script>
+<script>window.__WHISPER_MEETING__ = {};</script>
+<script>
+(function () {
+  "use strict";
+  var token = new URLSearchParams(location.search).get("token");
+  var facts = [];
+  var seen = new Set();
+  var hideTrans = false;
+  var segmentsEl = document.getElementById("segments");
+  var pendingEl = document.getElementById("pending");
+  var emptyEl = document.getElementById("empty");
+  var countEl = document.getElementById("count");
+  var dotEl = document.getElementById("dot");
+  var statusEl = document.getElementById("statusText");
+
+  var meta = window.__WHISPER_MEETING__ || {};
+  var meetingEl = document.getElementById("meeting");
+  if (meta.id) {
+    meetingEl.textContent = (meta.label || "未归档") + " ｜ " + meta.display +
+      " ｜ ID " + meta.id + (meta.archive ? " ｜ 存档 " + meta.archive : "");
+  } else {
+    meetingEl.textContent = "本次未开启会议存档（--no-archive）";
+  }
+
+  function setStatus(text, ok) {
+    statusEl.textContent = text;
+    dotEl.className = ok ? "dot ok" : "dot";
+  }
+
+  function stamp(ev) {
+    return "[" + ev.ts + (ev.rel === null || ev.rel === undefined ? "" : " +" + ev.rel + "s") + "]";
+  }
+
+  function lineFor(ev) {
+    return stamp(ev) + " " + (ev.kind === "trans" ? "译 " : "") + ev.text;
+  }
+
+  function nearBottom() {
+    return window.innerHeight + window.scrollY >= document.body.scrollHeight - 120;
+  }
+
+  function render(ev) {
+    if (seen.has(ev.id)) { return; }
+    seen.add(ev.id);
+    if (ev.kind === "part") {
+      pendingEl.hidden = false;
+      pendingEl.textContent = "未定稿｜" + ev.text + "（不计入导出）";
+      return;
+    }
+    pendingEl.hidden = true;
+    var stick = nearBottom();
+    facts.push(ev);
+    var div = document.createElement("div");
+    div.className = "seg" + (ev.kind === "trans" ? " trans" : "") +
+                    (hideTrans && ev.kind === "trans" ? " hidden" : "");
+    var ts = document.createElement("span");
+    ts.className = "ts";
+    ts.textContent = stamp(ev);
+    div.appendChild(ts);
+    if (ev.kind === "trans") {
+      var tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = "译文";
+      div.appendChild(tag);
+    }
+    var txt = document.createElement("span");
+    txt.className = "txt";
+    txt.textContent = ev.text;
+    div.appendChild(txt);
+    segmentsEl.appendChild(div);
+    emptyEl.hidden = true;
+    countEl.textContent = facts.length + " 段";
+    if (stick) { window.scrollTo(0, document.body.scrollHeight); }
+  }
+
+  function factsText() {
+    var head = "# 本地转写事实源\n" +
+               "# 原文来自本机离线 ASR；标「译 」的行由 Argos 离线机器翻译生成，不是原文。\n\n";
+    return head + facts.map(lineFor).join("\n");
+  }
+
+  function flash(btn, text) {
+    var original = btn.dataset.label || btn.textContent;
+    btn.dataset.label = original;
+    btn.textContent = text;
+    window.setTimeout(function () { btn.textContent = original; }, 1600);
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var btn = this;
+    var text = factsText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        flash(btn, "已复制 " + facts.length + " 段");
+      }, function () { legacyCopy(text, btn); });
+    } else {
+      legacyCopy(text, btn);
+    }
+  });
+
+  function legacyCopy(text, btn, okText) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "absolute";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); flash(btn, okText || ("已复制 " + facts.length + " 段")); }
+    catch (e) { flash(btn, "复制失败，请手动选中"); }
+    document.body.removeChild(ta);
+  }
+
+  document.getElementById("idBtn").addEventListener("click", function () {
+    var btn = this;
+    if (!meta.id) { flash(btn, "本次没有会议 ID"); return; }
+    var text = meta.label + " · ID " + meta.id + " · " + meta.display;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        flash(btn, "已复制会议标识");
+      }, function () { legacyCopy(text, btn, "已复制会议标识"); });
+    } else {
+      legacyCopy(text, btn, "已复制会议标识");
+    }
+  });
+
+  document.getElementById("mdBtn").addEventListener("click", function () {
+    var btn = this;
+    fetch("/transcript.md?token=" + encodeURIComponent(token)).then(function (r) {
+      if (!r.ok) { throw new Error("HTTP " + r.status); }
+      return r.blob();
+    }).then(function (blob) {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "transcript_" + new Date().toISOString().slice(0, 10) + ".md";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      flash(btn, "已导出 " + facts.length + " 段");
+    }).catch(function () { flash(btn, "导出失败：服务未连接"); });
+  });
+
+  document.getElementById("transBtn").addEventListener("click", function () {
+    hideTrans = !hideTrans;
+    var list = segmentsEl.querySelectorAll(".seg.trans");
+    for (var i = 0; i < list.length; i++) {
+      list[i].classList.toggle("hidden", hideTrans);
+    }
+    this.textContent = hideTrans ? "显示译文" : "隐藏译文";
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    facts = [];
+    seen.clear();
+    segmentsEl.textContent = "";
+    pendingEl.hidden = true;
+    emptyEl.hidden = false;
+    emptyEl.textContent = "已清屏。服务端记录不变，刷新页面会重新补发全部历史。";
+    countEl.textContent = "0 段";
+  });
+
+  document.getElementById("historyBtn").addEventListener("click", function () {
+    location.href = "/history?token=" + encodeURIComponent(token || "");
+  });
+  document.getElementById("archiveBtn").addEventListener("click", function () {
+    if (!meta.id) { flash(this, "本次没有会议 ID"); return; }
+    location.href = "/m/" + encodeURIComponent(meta.id) + "?token=" + encodeURIComponent(token || "");
+  });
+
+  if (Array.isArray(window.__WHISPER_BOOTSTRAP__)) {
+    window.__WHISPER_BOOTSTRAP__.forEach(render);
+  }
+
+  if (!token) {
+    setStatus("未带 token：请复制程序输出的完整 URL 打开", false);
+    emptyEl.textContent = "这个页面需要通过带 token 的本地 URL 打开。程序启动时会打印完整 URL。";
+    return;
+  }
+
+  var source = new EventSource("/events?token=" + encodeURIComponent(token));
+  source.onopen = function () { setStatus("已连接", true); };
+  source.onerror = function () { setStatus("连接断开，每 2 秒自动重连", false); };
+  source.addEventListener("backfill", function (e) { render(JSON.parse(e.data)); });
+  source.addEventListener("segment", function (e) { render(JSON.parse(e.data)); });
+
+  // 控制面（I-067）：本页就是 all in one 前端。没有运行核心时只显示只读说明，
+  // 不渲染任何看起来能点、实际无效的控制按钮。
+  var controlEl = document.getElementById("control");
+  var controlMode = document.getElementById("controlMode");
+  var controlBody = document.getElementById("controlBody");
+  var readonlyNote = document.getElementById("readonlyNote");
+  var runBtn = document.getElementById("runBtn");
+  var engineSel = document.getElementById("engineSel");
+  var sourceSel = document.getElementById("sourceSel");
+  var translateChk = document.getElementById("translateChk");
+  var overlayNote = document.getElementById("overlayNote");
+  var controlHint = document.getElementById("controlHint");
+  var controlAvailable = false;
+  var controlBusy = false;
+
+  function say(msg, bad) {
+    controlHint.textContent = msg || "";
+    controlHint.style.color = bad ? "#a33a32" : "#3c4650";
+  }
+
+  function setIfIdle(el, value) {
+    if (document.activeElement !== el) { el.value = value; }
+  }
+
+  function applyState(s) {
+    controlMode.textContent = "转写状态：" + (s.running ? "运行中" : "待机") +
+      " ｜ 引擎 " + s.engine + " ｜ " + (s.source === "mic" ? "麦克风" : "系统声音");
+    runBtn.textContent = s.running ? "停止转写" : "开始转写";
+    runBtn.classList.toggle("running", !!s.running);
+    setIfIdle(engineSel, s.engine);
+    setIfIdle(sourceSel, s.source);
+    if (document.activeElement !== translateChk) { translateChk.checked = !!s.translate; }
+    overlayNote.textContent = "悬浮字幕：" + (s.overlay ? "已开启" : "未开启") +
+      "（--overlay 是启动选项，运行时不可切换）";
+  }
+
+  function readState(report) {
+    return fetch("/api/control/state?token=" + encodeURIComponent(token),
+                 { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        controlEl.hidden = false;
+        if (!data.available) {
+          controlAvailable = false;
+          controlBody.hidden = true;
+          readonlyNote.hidden = false;
+          controlMode.textContent = "只读文本页";
+          readonlyNote.textContent = (data.reason || "本实例没有运行核心") +
+            "。此页仍可读全文、导出与查看历史；要在这里控制转写，请用 live --headless 启动本地后端。";
+          return;
+        }
+        controlAvailable = true;
+        controlBody.hidden = false;
+        readonlyNote.hidden = true;
+        applyState(data.state);
+        if (report) { say(report); }
+      })
+      .catch(function (e) {
+        controlEl.hidden = false;
+        controlBody.hidden = true;
+        readonlyNote.hidden = false;
+        controlMode.textContent = "运行状态读取失败";
+        readonlyNote.textContent = "本机服务没有响应（" + e.message + "）。";
+      });
+  }
+
+  function act(action, patch, label) {
+    if (controlBusy || !controlAvailable) { return; }
+    controlBusy = true;
+    runBtn.disabled = true;
+    say("正在" + label + "…");
+    fetch("/api/control/action?token=" + encodeURIComponent(token), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: action, patch: patch || {} })
+    }).then(function (r) {
+      return r.json().then(function (data) { return { code: r.status, data: data }; });
+    }).then(function (out) {
+      if (!out.data.ok) {
+        say(out.data.error || ("操作失败（HTTP " + out.code + "）"), true);
+        return readState("");
+      }
+      return readState(out.data.message || (label + "完成"));
+    }).catch(function (e) {
+      say("控制请求失败：" + e.message, true);
+    }).then(function () {
+      controlBusy = false;
+      runBtn.disabled = false;
+    });
+  }
+
+  runBtn.addEventListener("click", function () {
+    act(runBtn.classList.contains("running") ? "stop" : "start", {}, "切换转写状态");
+  });
+  engineSel.addEventListener("change", function () {
+    act("configure", { engine: engineSel.value }, "切换引擎");
+  });
+  sourceSel.addEventListener("change", function () {
+    act("configure", { source: sourceSel.value }, "切换音源");
+  });
+  translateChk.addEventListener("change", function () {
+    act("configure", { translate: translateChk.checked }, "调整译文开关");
+  });
+
+  readState("");
+  window.setInterval(function () {
+    if (!controlBusy) { readState(""); }
+  }, 5000);
+})();
+</script>
+</body>
+</html>

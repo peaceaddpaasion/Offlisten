@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本地转写 · 无法打开</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    max-width: 720px;
+    padding: 32px 20px 48px;
+    background: #f5f6f7;
+    color: #1c2126;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  h1 { margin: 0 0 6px; font-size: 19px; font-weight: 600; }
+  h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+  #reason { margin: 0 0 22px; color: #3c4650; font-size: 14px; }
+  ol { padding-left: 22px; margin: 0; }
+  li { margin: 10px 0; }
+  code {
+    font-family: "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+    font-size: 13px;
+    background: #e9edf0;
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 10px; }
+  input {
+    flex: 1 1 320px;
+    font: inherit;
+    font-size: 14px;
+    padding: 7px 10px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+  }
+  button {
+    font: inherit;
+    font-size: 13px;
+    padding: 7px 12px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+    cursor: pointer;
+  }
+  button:hover { background: #e9edf0; }
+  #probe {
+    font-family: "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+    font-size: 13px;
+    background: #ffffff;
+    border: 1px solid #d3d8dd;
+    padding: 10px 12px;
+    white-space: pre-wrap;
+    margin: 0;
+  }
+  .foot {
+    border-top: 1px solid #d3d8dd;
+    margin-top: 28px;
+    padding-top: 12px;
+    font-size: 13px;
+    color: #3c4650;
+  }
+</style>
+</head>
+<body>
+<h1>本地服务拒绝了这次请求</h1>
+<p id="reason">HTTP 403：这一页需要带 token 的本地 URL 才能打开。</p>
+
+<h2>先核对这三处</h2>
+<ol>
+  <li><strong>URL 没复制全。</strong><code>?token=</code> 后面必须完整。控制台字体里 <code>1</code> / <code>l</code> / <code>I</code>、<code>_</code> / <code>-</code> / <code>.</code> 很像，别照着屏幕手敲。</li>
+  <li><strong>连到了另一个实例。</strong>同一台机器上先后开过两次转写时，旧服务可能还占着这个端口。核对控制台刚打印的端口号，不要用旧标签页的地址。</li>
+  <li><strong>服务重启过。</strong>token 每次启动都会换；退出程序后旧链接一律失效。</li>
+</ol>
+
+<div class="row">
+  <input id="tok" type="text" placeholder="粘贴完整 token，或整条带 token 的 URL" autocomplete="off" spellcheck="false">
+  <button id="retry" type="button">用这个 token 重试</button>
+  <button id="probeBtn" type="button">查看当前端口上的实例</button>
+</div>
+<pre id="probe" hidden></pre>
+
+<p class="foot">启用 web live 时程序会自动打开页面；也可以双击项目目录里的 <code>open_live.url</code>。此页不显示任何转写内容，也不显示 token。</p>
+
+<script>window.__DENY__ = {};</script>
+<script>
+(function () {
+  "use strict";
+  var d = window.__DENY__ || {};
+  var reason = document.getElementById("reason");
+  if (d.state === "missing") {
+    reason.textContent = "HTTP 403：地址里没有 token 参数。";
+  } else {
+    reason.textContent = "HTTP 403：token 与当前服务不匹配（端口 " +
+      (d.port || "?") + "，实例指纹 " + (d.instance || "?") + "）。";
+  }
+
+  function retry() {
+    var raw = document.getElementById("tok").value.trim();
+    if (!raw) { return; }
+    var m = raw.match(/[?&]token=([^&#\s]+)/);
+    var t = m ? m[1] : raw;
+    location.replace("/?token=" + encodeURIComponent(t));
+  }
+
+  document.getElementById("retry").addEventListener("click", retry);
+  document.getElementById("tok").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { retry(); }
+  });
+  document.getElementById("probeBtn").addEventListener("click", function () {
+    var el = document.getElementById("probe");
+    el.hidden = false;
+    el.textContent = "正在读取 /health …";
+    fetch("/health").then(function (r) { return r.json(); }).then(function (j) {
+      el.textContent = "当前端口 " + j.port + "\n实例指纹 " + j.instance +
+        "\n已记录段数 " + j.segments + "\n服务 " + j.service + " v" + j.version;
+    }).catch(function (e) { el.textContent = "读取失败：" + e; });
+  });
+})();
+</script>
+</body>
+</html>

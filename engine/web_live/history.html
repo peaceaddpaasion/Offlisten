@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>历史会议 · 本地转写</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    max-width: 940px;
+    padding: 24px 20px 40px;
+    background: #f5f6f7;
+    color: #1c2126;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #d3d8dd;
+    padding-bottom: 12px;
+  }
+  h1 { margin: 0; font-size: 19px; font-weight: 600; }
+  #summary { font-size: 13px; color: #3c4650; white-space: nowrap; }
+  .lede { margin: 14px 0 18px; font-size: 13px; color: #3c4650; line-height: 1.7; }
+  .tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  input[type="search"], input[type="text"] {
+    font: inherit;
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+  }
+  #q { width: 270px; }
+  .check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #2c363f; }
+  a.btn, button {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  a.btn:hover, button:hover { background: #e9edf0; }
+  a.btn:active, button:active { background: #dde3e8; }
+  #notice { min-height: 20px; margin: 4px 0 12px; font-size: 13px; color: #2c363f; }
+  h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 22px 0 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #d3d8dd;
+  }
+  h2 span { font-weight: 400; font-size: 13px; color: #3c4650; margin-left: 8px; }
+  .row {
+    border: 1px solid #d3d8dd;
+    border-left: 4px solid #d3d8dd;
+    background: #ffffff;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .row.starred { border-left-color: #6b4a12; }
+  .line { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; font-size: 13px; color: #3c4650; }
+  .label { font-weight: 600; color: #1c2126; }
+  .mid {
+    font-family: "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+    font-size: 13px;
+    color: #2c363f;
+  }
+  .badge {
+    font-size: 13px;
+    color: #2c363f;
+    background: #dfe4e8;
+    border-radius: 3px;
+    padding: 0 5px;
+  }
+  .edit { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 9px; }
+  .edit input[type="text"] { flex: 1 1 260px; min-width: 180px; }
+  .edit button { padding: 5px 10px; }
+  button.starred { border-color: #6b4a12; font-weight: 600; }
+  #empty { font-size: 14px; color: #3c4650; margin: 20px 0; }
+  footer {
+    border-top: 1px solid #d3d8dd;
+    margin-top: 26px;
+    padding-top: 10px;
+    font-size: 13px;
+    color: #3c4650;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>历史会议</h1>
+  <span id="summary">正在读取本地存档</span>
+</header>
+
+<p class="lede">存档在 <code>meetings/YYYY-MM-DD/</code> 下，一场会议一个以日期+时间为唯一标识的 <code>.md</code> 文件。<code>日期 #n</code> 是当天的组内序号，按文件时间排序生成；题目与星标存在同名的 <code>.meta.json</code>，事实源文件只追加、不改写。</p>
+
+<div class="tools">
+  <input id="q" type="search" placeholder="按题目 / ID / 日期查找" autocomplete="off">
+  <label class="check"><input id="starOnly" type="checkbox"> 仅看已标星</label>
+  <a class="btn" id="liveLink" href="/">返回实时页</a>
+</div>
+
+<p id="notice" aria-live="polite"></p>
+<main id="groups"></main>
+<p id="empty" hidden></p>
+
+<footer>
+  清空题目只删除题目文字，不删除会议记录本身。旧格式存档会标为「旧格式」，可用 <code>--migrate-archives</code> 搬进日期目录。
+</footer>
+
+<script>window.__HISTORY_BOOT__ = null;</script>
+<script>
+(function () {
+  "use strict";
+  var token = new URLSearchParams(location.search).get("token") || "";
+  var data = window.__HISTORY_BOOT__ || {groups: [], total: 0, legacy: 0, archive_dir: ""};
+  var groupsEl = document.getElementById("groups");
+  var emptyEl = document.getElementById("empty");
+  var summaryEl = document.getElementById("summary");
+  var noticeEl = document.getElementById("notice");
+  var qEl = document.getElementById("q");
+  var starOnlyEl = document.getElementById("starOnly");
+
+  function withToken(url) {
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(token);
+  }
+  document.getElementById("liveLink").href = withToken("/");
+
+  function save(id, patch, okText) {
+    noticeEl.textContent = "正在保存…";
+    fetch(withToken("/api/meeting/" + id), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(patch)
+    }).then(function (r) {
+      if (!r.ok) { throw new Error("HTTP " + r.status); }
+      return r.json();
+    }).then(function () {
+      return fetch(withToken("/meetings.json"));
+    }).then(function (r) {
+      if (!r.ok) { throw new Error("HTTP " + r.status); }
+      return r.json();
+    }).then(function (fresh) {
+      data = fresh;
+      render();
+      noticeEl.textContent = okText;
+    }).catch(function (e) {
+      noticeEl.textContent = "保存失败：" + e.message + "（本地服务是否还在运行？）";
+    });
+  }
+
+  function rowFor(m) {
+    var row = document.createElement("div");
+    row.className = "row" + (m.star ? " starred" : "");
+
+    var line = document.createElement("div");
+    line.className = "line";
+    var label = document.createElement("span");
+    label.className = "label";
+    label.textContent = "#" + m.no;
+    line.appendChild(label);
+
+    var open = document.createElement("a");
+    open.className = "mid";
+    open.href = withToken(m.url);
+    open.textContent = m.id;
+    line.appendChild(open);
+
+    var time = document.createElement("span");
+    time.textContent = m.display + " · " + m.segments + " 段";
+    line.appendChild(time);
+
+    if (m.star) {
+      var badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = "已标星";
+      line.appendChild(badge);
+    }
+    if (m.legacy) {
+      var old = document.createElement("span");
+      old.className = "badge";
+      old.textContent = "旧格式";
+      line.appendChild(old);
+    }
+    row.appendChild(line);
+
+    var edit = document.createElement("div");
+    edit.className = "edit";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.value = m.title || "";
+    input.placeholder = "未命名，输入题目后按回车";
+    input.setAttribute("aria-label", "会议题目 " + m.id);
+    edit.appendChild(input);
+
+    function commit() {
+      var v = input.value.trim();
+      if (v === (m.title || "")) { noticeEl.textContent = "题目没变化"; return; }
+      save(m.id, {title: v}, v ? "已保存题目：" + v : "已清空题目");
+    }
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); commit(); }
+    });
+
+    var saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.textContent = "保存题目";
+    saveBtn.addEventListener("click", commit);
+    edit.appendChild(saveBtn);
+
+    var clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.textContent = "清空题目";
+    clearBtn.addEventListener("click", function () {
+      if (!m.title) { noticeEl.textContent = "题目本来就是空的"; return; }
+      save(m.id, {title: ""}, "已清空题目（会议记录保留）");
+    });
+    edit.appendChild(clearBtn);
+
+    var starBtn = document.createElement("button");
+    starBtn.type = "button";
+    starBtn.textContent = m.star ? "取消标星" : "标星";
+    if (m.star) { starBtn.className = "starred"; }
+    starBtn.addEventListener("click", function () {
+      save(m.id, {star: !m.star}, m.star ? "已取消标星" : "已标星");
+    });
+    edit.appendChild(starBtn);
+
+    row.appendChild(edit);
+    return row;
+  }
+
+  function render() {
+    var q = qEl.value.trim().toLowerCase();
+    var onlyStar = starOnlyEl.checked;
+    var shown = 0;
+    var days = 0;
+    groupsEl.textContent = "";
+    (data.groups || []).forEach(function (g) {
+      var items = g.meetings.filter(function (m) {
+        if (onlyStar && !m.star) { return false; }
+        if (!q) { return true; }
+        return (m.title + " " + m.id + " " + m.date + " " + m.label).toLowerCase().indexOf(q) >= 0;
+      });
+      if (!items.length) { return; }
+      days += 1;
+      shown += items.length;
+      var h2 = document.createElement("h2");
+      h2.textContent = g.date;
+      var count = document.createElement("span");
+      count.textContent = items.length + " 场";
+      h2.appendChild(count);
+      groupsEl.appendChild(h2);
+      items.forEach(function (m) { groupsEl.appendChild(rowFor(m)); });
+    });
+    summaryEl.textContent = "显示 " + shown + " / " + data.total + " 场 · " + days + " 天" +
+      (data.legacy ? " · " + data.legacy + " 场旧格式" : "");
+    emptyEl.hidden = shown !== 0;
+    if (!data.total) {
+      emptyEl.textContent = "还没有会议存档。启动一次 live --web-live，或用 --replay 回放一份文字稿，就会生成一场会议。";
+    } else if (!shown) {
+      emptyEl.textContent = "没有符合当前筛选条件的会议。清空搜索词或取消「仅看已标星」即可看全部。";
+    }
+  }
+
+  qEl.addEventListener("input", render);
+  starOnlyEl.addEventListener("change", render);
+  render();
+})();
+</script>
+</body>
+</html>

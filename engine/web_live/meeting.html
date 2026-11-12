@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会议存档 · 本地转写</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    max-width: 880px;
+    padding: 24px 20px 40px;
+    background: #f5f6f7;
+    color: #1c2126;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #d3d8dd;
+    padding-bottom: 12px;
+  }
+  h1 { margin: 0; font-size: 19px; font-weight: 600; }
+  #count { font-size: 13px; color: #3c4650; white-space: nowrap; }
+  .info {
+    margin: 14px 0 0;
+    padding: 8px 10px;
+    border: 1px solid #d3d8dd;
+    background: #ffffff;
+    font-size: 13px;
+    color: #2c363f;
+    line-height: 1.7;
+  }
+  .info .label { font-weight: 600; color: #1c2126; }
+  .info .mid {
+    font-family: "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+    font-size: 13px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 13px;
+    color: #2c363f;
+    background: #dfe4e8;
+    border-radius: 3px;
+    padding: 0 5px;
+    margin-left: 6px;
+  }
+  .lede { margin: 12px 0 0; font-size: 13px; color: #3c4650; line-height: 1.7; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 18px 0 6px; }
+  button, a.btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  button:hover, a.btn:hover { background: #e9edf0; }
+  button:active, a.btn:active { background: #dde3e8; }
+  button.starred { border-color: #6b4a12; font-weight: 600; }
+  input[type="text"] {
+    font: inherit;
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+    flex: 1 1 240px;
+    min-width: 180px;
+  }
+  #notice { min-height: 20px; margin: 4px 0 16px; font-size: 13px; color: #2c363f; }
+  .seg { padding: 7px 0; border-bottom: 1px solid #e3e7eb; }
+  .seg .ts {
+    font-family: "Cascadia Mono", Consolas, "SFMono-Regular", monospace;
+    font-size: 13px;
+    color: #4c5863;
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+  .seg .txt { font-size: 15px; }
+  .seg.trans { padding-left: 16px; border-left: 3px solid #7b858f; }
+  .seg.trans .txt { color: #38424b; }
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    color: #2c363f;
+    background: #dfe4e8;
+    border-radius: 3px;
+    padding: 0 5px;
+    margin-right: 8px;
+  }
+  #empty { font-size: 14px; color: #3c4650; margin: 18px 0; }
+  footer {
+    border-top: 1px solid #d3d8dd;
+    margin-top: 26px;
+    padding-top: 10px;
+    font-size: 13px;
+    color: #3c4650;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">会议存档</h1>
+  <span id="count">0 段</span>
+</header>
+
+<div class="info" id="info"></div>
+<p class="lede">本页首屏就带有这场会议的全部定稿文本，浏览器里的 AI 插件读取页面即可直接处理，不需要再调接口。未定稿片段从不写入存档；标「译文」的行由 Argos 离线机器翻译生成，不是原文。</p>
+
+<div class="tools">
+  <input id="titleInput" type="text" placeholder="未命名，输入题目后按回车" aria-label="会议题目">
+  <button id="saveBtn" type="button">保存题目</button>
+  <button id="clearBtn" type="button">清空题目</button>
+  <button id="starBtn" type="button">标星</button>
+</div>
+<div class="tools">
+  <button id="copyBtn" type="button">复制全文</button>
+  <button id="mdBtn" type="button">下载 Markdown</button>
+  <button id="linkBtn" type="button">复制会议链接</button>
+  <a class="btn" id="historyLink" href="/history">返回历史会议</a>
+  <a class="btn" id="liveLink" href="/">返回实时页</a>
+</div>
+
+<p id="notice" aria-live="polite"></p>
+<main id="segments"></main>
+<p id="empty" hidden></p>
+
+<footer>
+  存档标记与段数来自 <code id="archivePath"></code>。复制的会议链接含本次服务的本机 token，服务重启后 token 会变、链接会失效；跨重启仍可打开的长期链接属于后续待办。
+</footer>
+
+<script>window.__MEETING_BOOT__ = null;</script>
+<script>
+(function () {
+  "use strict";
+  var token = new URLSearchParams(location.search).get("token") || "";
+  var data = window.__MEETING_BOOT__;
+  var noticeEl = document.getElementById("notice");
+  var titleEl = document.getElementById("title");
+  var titleInput = document.getElementById("titleInput");
+  var starBtn = document.getElementById("starBtn");
+  var segmentsEl = document.getElementById("segments");
+  var emptyEl = document.getElementById("empty");
+
+  function withToken(url) {
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(token);
+  }
+
+  if (!data || !data.meeting) {
+    titleEl.textContent = "没有这场会议";
+    noticeEl.textContent = "本地存档里找不到该 ID。返回历史会议列表可看现有存档。";
+    document.getElementById("historyLink").href = withToken("/history");
+    document.getElementById("liveLink").href = withToken("/");
+    return;
+  }
+
+  var m = data.meeting;
+  var segs = data.segments || [];
+  document.getElementById("historyLink").href = withToken("/history");
+  document.getElementById("liveLink").href = withToken("/");
+  document.getElementById("archivePath").textContent = m.archive || "（未落盘）";
+
+  function paintMeta() {
+    titleEl.textContent = m.title || "未命名会议";
+    if (document.activeElement !== titleInput) { titleInput.value = m.title || ""; }
+    starBtn.textContent = m.star ? "取消标星" : "标星";
+    starBtn.className = m.star ? "starred" : "";
+    document.getElementById("count").textContent = segs.length + " 段";
+
+    var info = document.getElementById("info");
+    info.textContent = "";
+    var label = document.createElement("span");
+    label.className = "label";
+    label.textContent = m.label + " ｜ ";
+    info.appendChild(label);
+    var mid = document.createElement("span");
+    mid.className = "mid";
+    mid.textContent = "ID " + m.id;
+    info.appendChild(mid);
+    info.appendChild(document.createTextNode(" ｜ 开始 " + m.display +
+      " ｜ 段数 " + segs.length +
+      (m.ended_at ? " ｜ 结束 " + m.ended_at.replace("T", " ") : " ｜ 未写结束时间")));
+    if (m.star) {
+      var b1 = document.createElement("span");
+      b1.className = "badge";
+      b1.textContent = "已标星";
+      info.appendChild(b1);
+    }
+    if (m.legacy) {
+      var b2 = document.createElement("span");
+      b2.className = "badge";
+      b2.textContent = "旧格式，可用 --migrate-archives 迁移";
+      info.appendChild(b2);
+    }
+  }
+
+  function stamp(ev) {
+    return "[" + ev.ts + (ev.rel === null || ev.rel === undefined ? "" : " +" + ev.rel + "s") + "]";
+  }
+
+  function renderSegments() {
+    segmentsEl.textContent = "";
+    segs.forEach(function (ev) {
+      var div = document.createElement("div");
+      div.className = "seg" + (ev.kind === "trans" ? " trans" : "");
+      var ts = document.createElement("span");
+      ts.className = "ts";
+      ts.textContent = stamp(ev);
+      div.appendChild(ts);
+      if (ev.kind === "trans") {
+        var tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = "译文";
+        div.appendChild(tag);
+      }
+      var txt = document.createElement("span");
+      txt.className = "txt";
+      txt.textContent = ev.text;
+      div.appendChild(txt);
+      segmentsEl.appendChild(div);
+    });
+    emptyEl.hidden = segs.length !== 0;
+    emptyEl.textContent = "这场会议还没有定稿段落。";
+  }
+
+  function flash(btn, text) {
+    var original = btn.dataset.label || btn.textContent;
+    btn.dataset.label = original;
+    btn.textContent = text;
+    window.setTimeout(function () { btn.textContent = original; }, 1600);
+  }
+
+  function legacyCopy(text, btn, okText) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "absolute";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); flash(btn, okText); }
+    catch (e) { flash(btn, "复制失败，请手动选中"); }
+    document.body.removeChild(ta);
+  }
+
+  function copy(text, btn, okText) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { flash(btn, okText); },
+        function () { legacyCopy(text, btn, okText); });
+    } else {
+      legacyCopy(text, btn, okText);
+    }
+  }
+
+  function save(patch, okText) {
+    noticeEl.textContent = "正在保存…";
+    fetch(withToken("/api/meeting/" + m.id), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(patch)
+    }).then(function (r) {
+      if (!r.ok) { throw new Error("HTTP " + r.status); }
+      return r.json();
+    }).then(function (res) {
+      m = res.meeting;
+      paintMeta();
+      noticeEl.textContent = okText;
+    }).catch(function (e) {
+      noticeEl.textContent = "保存失败：" + e.message + "（本地服务是否还在运行？）";
+    });
+  }
+
+  function commit() {
+    var v = titleInput.value.trim();
+    if (v === (m.title || "")) { noticeEl.textContent = "题目没变化"; return; }
+    save({title: v}, v ? "已保存题目：" + v : "已清空题目");
+  }
+  titleInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); commit(); }
+  });
+  document.getElementById("saveBtn").addEventListener("click", commit);
+  document.getElementById("clearBtn").addEventListener("click", function () {
+    if (!m.title) { noticeEl.textContent = "题目本来就是空的"; return; }
+    titleInput.value = "";
+    save({title: ""}, "已清空题目（会议记录保留）");
+  });
+  starBtn.addEventListener("click", function () {
+    save({star: !m.star}, m.star ? "已取消标星" : "已标星");
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    copy(data.text || "", this, "已复制 " + segs.length + " 段");
+  });
+  document.getElementById("mdBtn").addEventListener("click", function () {
+    var blob = new Blob([data.markdown || ""], {type: "text/markdown;charset=utf-8"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = m.id + ".md";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    flash(this, "已下载 " + m.id + ".md");
+  });
+  document.getElementById("linkBtn").addEventListener("click", function () {
+    copy(location.origin + withToken(m.url), this, "已复制会议链接");
+  });
+
+  paintMeta();
+  renderSegments();
+})();
+</script>
+</body>
+</html>
