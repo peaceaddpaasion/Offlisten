@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>录匣 Offlisten — 离线会议转写</title>
+<style>
+  :root {
+    --bg: #23272c;
+    --panel: #1b1e22;
+    --line: #343a41;
+    --fg: #e8eaed;
+    --dim: #9aa4ae;
+    --accent: #f5c542;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.7 -apple-system, "Segoe UI", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 36px; }
+  h1 { font-size: 30px; line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .en { color: var(--dim); font-size: 15px; margin: 0; }
+  h2 { font-size: 17px; margin: 44px 0 12px; font-weight: 600; }
+  p { margin: 0 0 14px; }
+  .lead { font-size: 18px; line-height: 1.65; }
+  .lead strong { color: var(--accent); font-weight: 600; }
+  .note { color: var(--dim); font-size: 14px; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(245,197,66,.35); }
+  a:hover { border-bottom-color: var(--accent); }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--panel); font-weight: 600; color: var(--dim); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.out { font-size: 13px; color: #d4d9de; }
+  video { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #000; display: block; }
+  .videohint {
+    border: 1px dashed var(--line); border-radius: 8px; padding: 28px 20px;
+    text-align: center; color: var(--dim); font-size: 14px;
+  }
+  code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+  ul { padding-left: 20px; margin: 0 0 14px; }
+  li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>录匣 Offlisten</h1>
+  <p class="en">100% offline speech-to-text for meetings and lectures.</p>
+</header>
+
+<p class="lead">
+不到一台轻薄本的价钱就能买到的算力，正在替你写会议记录——只要不联网。
+<strong>没有账号，没有云端，拔掉网线它还在写。</strong>
+</p>
+
+<p>
+这个页面不放可交互 demo：转写要在服务端跑 229 MiB 的模型，而这东西的主场在你自己的电脑上。
+下面是同一份模型（SenseVoice int8，2 个 CPU 线程）的真实输出，你可以先看效果，再决定要不要装。
+</p>
+
+<h2>五个语种，同一份模型</h2>
+
+<div class="tablewrap">
+<table>
+  <thead>
+    <tr><th>音频</th><th>时长</th><th>耗时</th><th>RTF</th><th>输出</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>中</td><td class="num">5.6 s</td><td class="num">0.45 s</td><td class="num">0.080</td><td class="out">开饭时间早上9点至下午5点。</td></tr>
+    <tr><td>英</td><td class="num">7.2 s</td><td class="num">0.81 s</td><td class="num">0.114</td><td class="out">The tribal chieftain called for the boy and presented him with 50 pieces of code.</td></tr>
+    <tr><td>日</td><td class="num">7.2 s</td><td class="num">0.61 s</td><td class="num">0.085</td><td class="out">うちの中学は弁当制で持っていきない場合は50円の学校販売のパンを買う。</td></tr>
+    <tr><td>韩</td><td class="num">4.6 s</td><td class="num">0.39 s</td><td class="num">0.084</td><td class="out">조금만 생각을 하면서 살면 훨씬 편할 거야.</td></tr>
+    <tr><td>粤</td><td class="num">5.1 s</td><td class="num">0.45 s</td><td class="num">0.088</td><td class="out">呢几个字都表达唔到我想讲嘅意思。</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="note" style="margin-top:12px">
+RTF = 转写耗时 ÷ 音频时长，小于 1 表示比实时快。上表是 Windows 本机 2 线程的成绩，换机器会有出入。
+<br>
+一处如实标注：同一段中文，官方示例作「<b>开放</b>时间」，int8 量化下这里是「<b>开饭</b>时间」——
+我们把它留在表里，而不是挑一条好看的。
+</p>
+
+<h2>演示</h2>
+
+<video id="demo" controls preload="metadata" src="./demo.mp4" hidden></video>
+<p class="videohint" id="demo-hint">演示视频待上传。</p>
+
+<h2>它和云端转写的区别</h2>
+<ul>
+  <li><b>不上传</b>：音频不出本机。没有「隐私政策」需要读，因为没有服务器收它。</li>
+  <li><b>不用登录</b>：没有账号体系，也就没有订阅和额度。</li>
+  <li><b>断网可用</b>：模型随安装包一起落盘，拔掉网线照常写。</li>
+  <li><b>能抓桌面客户端</b>：系统级音频采集，不是只能录浏览器标签页。</li>
+</ul>
+
+<h2>模型</h2>
+<p>
+本页数字对应的权重公开在
+<a href="https://huggingface.co/ToothpasteLake/offlisten-models">ToothpasteLake/offlisten-models</a>，
+6 个文件共 229.07 MiB，逐文件 sha256 已登记在发行的清单里。
+换成自己的机器复跑时，先核对哈希，再比数字。
+</p>
+
+<!-- 主仓库公开后取消注释：
+<p>源码、契约文档与负结果册：<a href="https://github.com/peaceaddpaasion/Offlisten">github.com/peaceaddpaasion/Offlisten</a></p>
+-->
+
+<footer>
+录匣 Offlisten · 本地运行，不上传，不联网
+</footer>
+
+</main>
+<script>
+(function () {
+  var v = document.getElementById('demo');
+  var hint = document.getElementById('demo-hint');
+  v.addEventListener('loadedmetadata', function () {
+    v.hidden = false;
+    hint.hidden = true;
+  });
+  v.addEventListener('error', function () {
+    hint.textContent = '演示视频待上传：把 demo.mp4 放进仓库根目录即自动显示。';
+  });
+})();
+</script>
+</body>
+</html>

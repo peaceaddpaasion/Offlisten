@@ -218,8 +218,6 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
 | 229 MiB 的占比 | 公开额度里可忽略 |
 | 自动化 | 官方 `huggingface/hub-sync@v0.3.0` action，`repo_type: model`；或 `hf upload` CLI；支持 OIDC Trusted Publishers，不必存长期 token |
 
-但**权重不是我们训练的**，镜像之前先想清楚换来了什么：
-
 ### 先分清 HF 上的三种资源，它们长得像但作用差很远
 
 | 类型 | URL 形态 | 有版本历史 | 计费 | 适合放 |
@@ -242,6 +240,22 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
    实现放在 `space/`（`app.py` + `requirements.txt` + 带 frontmatter 的 `README.md`），已在本机 2 线程下跑通五个语种：
    RTF 0.080 / 0.114 / 0.085 / 0.084 / 0.088（zh/en/ja/ko/yue），详见 `space/README.md` 的实测表。
    注意 Space 的 50 GB 磁盘非持久，容器重建后模型缓存会丢，首位访客要等一次 229 MiB 下载。
+
+   **2026-11-12 实测：免费账号跑不起来 Gradio。** 三条路都堵死：
+
+   | 操作 | 结果 |
+   |---|---|
+   | `restart_space`（cpu-basic） | **403** `You've reached your cpu-basic quota limit` |
+   | `request_space_hardware("zero-a10g")` | **402** Payment Required |
+   | `restart_space(factory_reboot=True)` | 返回 ok，但 stage 始终 `PAUSED / hardware=None` |
+
+   官方 Spaces Overview 原文：「Static Spaces are free for everyone. **Gradio and Docker Spaces run on compute
+   and require a paid plan to create: PRO for personal accounts**」。所以当前的取舍是：
+   Space 用 `sdk: static`（免费、不占算力），页面放实测输出与视频位，**不放可交互 demo**；
+   `space/app.py` 留在仓库里，升级 PRO 后把 README 的 `sdk` 改回 `gradio` 即可恢复。
+   切换 static 后 `stage=RUNNING`，`https://toothpastelake-offlisten.static.hf.space/` 返回 200 / 6,739 B。
+
+但**权重不是我们训练的**，镜像之前先想清楚换来了什么：
 
 - 站得住的收益只有一个：上游 `FunAudioLLM/SenseVoiceSmall` 可能改分支、换文件，自己存一份 tag 化快照
   再把 sha256 写进 `dist-manifest.json`，哈希才长期可复核。
