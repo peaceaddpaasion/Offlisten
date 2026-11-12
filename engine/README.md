@@ -61,6 +61,7 @@ pc_models/
 ```
 
 体积账、三档取舍与为什么只分发 int8：见 [`../docs/distribution.md`](../docs/distribution.md)。
+三个文件的下载地址、归档体积与字节校验值：见 [`../CONTRIBUTING.md`](../CONTRIBUTING.md)（模型不入库，仓库里没有）。
 
 ## 目录
 
