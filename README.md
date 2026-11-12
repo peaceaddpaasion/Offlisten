@@ -129,7 +129,7 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/naming.md` | 命名与定位：候选判定、域名实测、双语口径 |
 | `docs/naming-tooling.md` | 命名工具链：能力核查、分工边界、聚类实测 |
 | `docs/publish.md` | 发布占位清单（GitHub + Release + 命名判定） |
-| `brand/README.md` | 图标设计过程（四候选、逐尺寸光栅化对比） |
+| `icons/README.md` | 图标源文件、配色，与逐尺寸光栅化的再生方法 |
 | `CITATION.cff` | 引用信息（GitHub 侧栏会显示「Cite this repository」） |
 
 ## License
