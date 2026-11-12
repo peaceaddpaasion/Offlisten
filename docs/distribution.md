@@ -251,9 +251,13 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
 
    官方 Spaces Overview 原文：「Static Spaces are free for everyone. **Gradio and Docker Spaces run on compute
    and require a paid plan to create: PRO for personal accounts**」。所以当前的取舍是：
-   Space 用 `sdk: static`（免费、不占算力），页面放实测输出与视频位，**不放可交互 demo**；
+   Space 用 `sdk: static`（免费、不占算力），页面放实测输出与演示视频，**不放可交互 demo**；
    `space/app.py` 留在仓库里，升级 PRO 后把 README 的 `sdk` 改回 `gradio` 即可恢复。
-   切换 static 后 `stage=RUNNING`，`https://toothpastelake-offlisten.static.hf.space/` 返回 200 / 6,739 B。
+   切换 static 后 `stage=RUNNING`，`https://toothpastelake-offlisten.static.hf.space/` 返回 200。
+
+   演示视频由 `tools/record-demo.py` 生成，不是手工录屏：脚本用同一份权重真跑五段
+   `test_wavs`，把结果按真实时钟推给本地 `web_live` 页面并逐帧截图，再按同一时钟混音
+   合成 mp4。所以视频里字幕出现的时刻就是「一句话说完」的时刻，与索引页的数字同源。
 
 但**权重不是我们训练的**，镜像之前先想清楚换来了什么：
 
