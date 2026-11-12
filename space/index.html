@@ -47,6 +47,11 @@
     text-align: center; color: var(--dim); font-size: 14px;
   }
   code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  h3 { font-size: 15px; margin: 26px 0 10px; font-weight: 600; color: var(--dim); }
+  blockquote {
+    margin: 0 0 14px; padding: 10px 14px; border-left: 2px solid var(--accent);
+    background: var(--panel); color: #c9d1d8; font-size: 14px; line-height: 1.7;
+  }
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; }
   ul { padding-left: 20px; margin: 0 0 14px; }
   li { margin-bottom: 6px; }
@@ -108,6 +113,48 @@
 这 42 秒里没有写好的台词：五段音频先被模型听，听完才落字，和产品里一样按停顿切段。
 界面是产品的本地文本页，以纯回放模式启动，所以控制区显示「只读文本页」——正常桌面运行时那里是开始／暂停。
 视频里出现的每个字节都只走过 <code>127.0.0.1</code>。
+</p>
+
+<h2>接上本地的 AI</h2>
+
+<p>
+录匣只做一件事：把声音变成文字。总结、追问、翻译交给谁写，由你决定——只要那个「谁」也在这台机器上。
+下面这段 46 秒没有音轨，因为它要证明的是另一件事。
+</p>
+
+<video controls preload="metadata" src="./use-with-browser-ai.mp4"></video>
+
+<p class="note" style="margin-top:12px">
+左边是录匣的本地文本页，右边是浏览器里的 Page Assist，接着一个跑在 Ollama 上的 <code>qwen2.5:0.5b</code>。
+勾选 <b>Chat with current page</b> 之后，插件读的是这个页面本身——不是云端接口，也不是把文字复制到别处再粘贴回来。
+</p>
+
+<h3>这不是外挂，是产品里写好的出口</h3>
+
+<p>本地文本页上那行提示，就是为这件事留的：</p>
+
+<blockquote>
+文本来自本机离线 ASR，只在 127.0.0.1 上传输。本页不调用任何模型，也不持有 apikey。
+要交给 AI 处理，就复制全文，或让你浏览器里已有的 AI 插件读取本页。
+</blockquote>
+
+<p>视频里三个部件都在同一台机器上，链路中没有一处需要出网：</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>部件</th><th>作用</th><th>跑在哪</th></tr></thead>
+  <tbody>
+    <tr><td>SenseVoice int8</td><td>声音 → 带标点文字</td><td class="out">本机进程，229 MiB 随安装包落盘</td></tr>
+    <tr><td>Page Assist</td><td>把当前页内容放进提示词</td><td class="out">浏览器扩展</td></tr>
+    <tr><td>Ollama + qwen2.5:0.5b</td><td>读文字，给回答</td><td class="out">本机进程，监听 127.0.0.1:11434</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="note" style="margin-top:12px">
+两句实话：一是 <code>0.5b</code> 只有五亿参数，回答质量按小模型的标准看，别拿它和云端大模型比；
+二是视频里它用英文作答，因为页面上并排摆着中文原文和 Argos 译文，模型看到的是双语文本。
+想让回答更稳，就在插件里限定「只依据中文原文回答」。
 </p>
 
 <h2>它和云端转写的区别</h2>

@@ -25,6 +25,7 @@ short_description: 100% offline ASR for meetings — local, no upload
 | `index.html` | 实际展示的页面 |
 | `demo.mp4` | 42 秒演示：五段音频真跑，听完才落字；`tools/record-demo.py` 生成 |
 | `demo.mp4.json` | 那次录制的实测记录：每段文本、耗时、音频 sha256 |
+| `use-with-browser-ai.mp4` | 46 秒，无音轨：本地文本页 + Page Assist + Ollama 的闭环实录 |
 | `README.md` | 本文件，Space 卡片元数据 |
 | `app.py`、`requirements.txt` | **Gradio 版**，本地已跑通；当前 `sdk: static` 不执行它。升级 PRO 后把 frontmatter 改回 `sdk: gradio` 即可切换 |
 
@@ -37,6 +38,19 @@ short_description: 100% offline ASR for meetings — local, no upload
 3. 按同一时钟把五段音频混成音轨，ffmpeg 合成 H.264 + AAC
 
 因此视频里“字幕出现的时刻”就是产品里“一段话说完的时刻”，音画不会漂。
+
+## 接本地的 AI
+
+`use-with-browser-ai.mp4` 记录的是另一条链路，46 秒，无音轨：
+
+    本机 SenseVoice → 127.0.0.1 上的文本页 → 浏览器扩展 Page Assist 读当前页 → Ollama 上的 qwen2.5:0.5b 作答
+
+三个部件都在同一台机器上，链路里没有一处需要出网。这不是外挂，是产品页里写好的出口——
+本地文本页有一行提示：「要交给 AI 处理，就复制全文，或让你浏览器里已有的 AI 插件读取本页。」
+
+视频去掉音轨、裁掉录屏工具条后转码：源素材 14.8 MB → 1.2 MB，1440×746。
+去掉声音是因为它要证明的是数据不出本机，不是听感。
+
 
 ## 模型与音频
 
