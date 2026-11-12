@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="方案 C：收音的点与扩散的声弧">
+  <rect width="128" height="128" rx="28" fill="#23272c"/>
+  <circle cx="42" cy="64" r="10" fill="#f5c542"/>
+  <path d="M62 44a28 28 0 0 1 0 40" fill="none" stroke="#e8eaed" stroke-opacity="0.9" stroke-width="10" stroke-linecap="round"/>
+  <path d="M82 32a46 46 0 0 1 0 64" fill="none" stroke="#4da3e0" stroke-opacity="0.9" stroke-width="10" stroke-linecap="round"/>
+</svg>

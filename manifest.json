@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Whisper 本地转写 · 页面助手",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "读取本机 web live 的转写文本，供你已有的 AI 插件或剪贴板使用。不调用模型，不上传数据。",
   "icons": {
     "16": "icons/icon16.png",
