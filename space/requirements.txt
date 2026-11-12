@@ -1,0 +1,5 @@
+gradio>=5.0
+sherpa-onnx>=2.0.0,<3
+soundfile>=0.12
+huggingface_hub>=0.30
+numpy>=1.24

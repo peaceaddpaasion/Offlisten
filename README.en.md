@@ -59,7 +59,8 @@ Offlisten
 ├─ extension/    MV3 extension (8 files / 12.5 KB) — reads local transcripts, drives the engine
 │                manifest.json  popup.html  popup.js  service_worker.js  icons/
 ├─ docs/         contract, distribution, ADRs, working paper, negative results, availability matrix
-└─ tools/        packaging, contract check, release manifest, drift check
+├─ tools/        packaging, contract check, release manifest, drift check, HF push
+└─ space/        Hugging Face Space demo (upload → transcript + RTF), no WASAPI required
 ```
 
 **The engine does not need the extension**: uninstall the extension and it still works, serving its own live page on `127.0.0.1`.

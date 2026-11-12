@@ -62,7 +62,8 @@
 ├─ extension/    MV3 扩展（8 文件 / 12.5 KB）只做两件事：读本机转写、遥控引擎
 │                manifest.json  popup.html  popup.js  service_worker.js  icons/
 ├─ docs/         契约、分发、ADR、工作稿、负结果册、可用性矩阵
-└─ tools/        打包、契约自检、发行清单、漂移检查
+├─ tools/        打包、契约自检、发行清单、漂移检查、HF 推送
+└─ space/        Hugging Face Space 在线演示（上传音频 → 转写 + RTF），不依赖 WASAPI
 ```
 
 **引擎不依赖扩展**：拔掉扩展它照常工作，自己会起一个 `127.0.0.1` 的 live 页面。

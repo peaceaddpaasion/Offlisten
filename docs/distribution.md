@@ -238,6 +238,10 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
    **私有 bucket 的这个 URL 需要 token**，不能当用户下载入口。
 3. **Space 只能做在线 demo，而且与「不上传」冲突。** 引擎依赖 WASAPI + Windows，Space 是 Linux 容器，跑不了；
    能跑的是「上传音频 → 出转写」的离线版。它证明的是模型能力，不是产品承诺——所以只能作为技术演示，不挂成产品入口。
+   免费档规格：2 vCPU / 16 GB RAM / 50 GB 非持久磁盘 / 无 GPU，闲置会休眠，出站只放 80/443/8080。
+   实现放在 `space/`（`app.py` + `requirements.txt` + 带 frontmatter 的 `README.md`），已在本机 2 线程下跑通五个语种：
+   RTF 0.080 / 0.114 / 0.085 / 0.084 / 0.088（zh/en/ja/ko/yue），详见 `space/README.md` 的实测表。
+   注意 Space 的 50 GB 磁盘非持久，容器重建后模型缓存会丢，首位访客要等一次 229 MiB 下载。
 
 - 站得住的收益只有一个：上游 `FunAudioLLM/SenseVoiceSmall` 可能改分支、换文件，自己存一份 tag 化快照
   再把 sha256 写进 `dist-manifest.json`，哈希才长期可复核。
