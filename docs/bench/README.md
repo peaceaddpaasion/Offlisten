@@ -1,12 +1,14 @@
 # 端侧 ASR 运行时可用性矩阵
 
-![运行时可使用性矩阵](matrix.svg)
+| 中文版 | English |
+|---|---|
+| [![中文版](matrix-zh.svg)](matrix-zh.png) | [![English](matrix-en.svg)](matrix-en.png) |
 
 > **一句话结论：三条硬约束「CPU 能跑 · 流式 · 可分发」下，12 格里只有 2 格通过（sherpa-onnx 与 sherpa-ncnn），
-> 其中只有 1 格被我们实测过。GGUF 卡在流式，TensorRT 卡在 CPU。**
+> 其中只有 1 格有本机实测。GGUF 卡在流式，TensorRT 卡在 CPU。**
 
-这张图的目的不是告诉你"哪个最快"，是告诉你**哪些格子根本不存在，以及为什么**。
-大多数人在端侧选型上重复踩的坑，不是性能不够，是选中了一个**原理上就装不到用户机器上**的组合。
+这张图不回答"哪个最快"，回答**哪些格子根本不存在，以及为什么**。
+端侧选型最常见的失败不是选了个慢的，是选中了一个**原理上就装不到用户机器上**的组合。
 
 ## 怎么读
 
@@ -16,52 +18,45 @@
 
 ## 证据分级（12 格逐格交代依据从哪来）
 
-一张选型表最该被追问的是"你凭什么这么写"。所以每格标一级：
+一张选型表最该被追问的是"你凭什么这么写"。所以每格标一级，**级别决定它能被怎样引用**：
 
-| 级别 | 含义 | 格数 | 哪些格 |
-|---|---|---|---|
-| **L1 官方文档 / 包矩阵** | 可当场复核，不依赖本机 | 5 | TRT ×3（FAQ + 支持矩阵）、ncnn arm64（PyPI 文件名）、GGUF x86-CPU（官方模型卡含 CER） |
-| **L2 运行时实测** | 我们在本机真的跑起来并量过 | 1 | onnx x86-CPU（SenseVoice int8，产品主用） |
-| **L2′ 只测了模型侧** | 模型取证做过，运行时没跑 | 1 | ncnn x86-CPU——见下节 |
-| **L3 推断 / 未验证** | 写明推断链，不冒充实测 | 5 | onnx x86+GPU、onnx arm64、ncnn x86+GPU、GGUF x86+GPU、GGUF arm64 |
+| 级别 | 含义 | 可被引用为 | 格数 | 哪些格 |
+|---|---|---|---|---|
+| **L1 官方文档 / 包矩阵** | 可当场复核，不依赖本机 | 结论 | 5 | TRT ×3（FAQ + 支持矩阵）、ncnn arm64（PyPI 文件名）、GGUF x86-CPU（官方模型卡含 CER） |
+| **L2 运行时实测** | 在本机跑起来并量过 | 结论（限本机配置） | 1 | onnx x86-CPU（SenseVoice int8，产品主用） |
+| **L2′ 只测模型侧** | 模型取证做过，运行时没跑 | 仅"模型在"，不是"能跑" | 1 | ncnn x86-CPU——见下节 |
+| **L3 推断 / 未验证** | 写明推断链，不冒充实测 | 仅"值得试" | 5 | onnx x86+GPU、onnx arm64、ncnn x86+GPU、GGUF x86+GPU、GGUF arm64 |
 
-**为什么要单列 L2′**：因为"测过"这个词在口语里会把两件事粘在一起——**模型取证**（文件存在、结构对得上、md5 一致）和**运行时实测**（跑起来、量出 RTF 和 CER）。前者回答"这个模型是不是它宣称的那个"，后者回答"它在这台机器上多快"。前者做了不等于后者做了，而后者才是这张图颜色深浅的依据。
+L2′ 单列的理由：**模型取证**（文件在、结构对得上、md5 一致）回答"这个模型是不是它宣称的那个"；
+**运行时实测**（跑起来、量出 RTF 与 CER）回答"它在这台机器上多快"。后者才是颜色深浅的依据，前者做了不等于后者做了。
 
 **L3 的 5 格不许被引用成结论**——它们是"值得试"，不是"测过"。
 
-## ncnn 那一格，到底测过什么（别再说"没测"或"测过"）
+## ncnn 那一格测过什么
 
-这一格曾被两头写错：一次写重了（当成竞品已否决），一次写轻了（当成完全没碰过）。逐条列清：
+**模型侧（L2′）**
 
-**测过的（模型侧，L2′）**
-
-- `official_model/` 135 MB、`apk_models/` 135 MB 仍在盘上，逐文件量过；
+- `official_model/` 135 MB、`apk_models/` 135 MB 在盘上，逐文件量过；
 - vendor 模型 `xb-zh-en-v3` 与官方 `sherpa-ncnn-streaming-zipformer-bilingual-zh-en-2023-02-13` 的 `param` / `tokens` **md5 完全一致**（纯改名未微调）；
-- `SherpaMetaData` 逐项比对一致：层数 `2,4,3,2,4`、encoder_dim `384×5`、attention_dim `192×5`、下采样 `1,2,4,8,2`、CNN kernel `31×5`；
-- 同构替换已做：换成 `zipformer-libri-giga-70M-2023-04-04`（decoder/joiner 仅 vocab 6254→500）。
+- `SherpaMetaData` 逐项一致：层数 `2,4,3,2,4`、encoder_dim `384×5`、attention_dim `192×5`、下采样 `1,2,4,8,2`、CNN kernel `31×5`；
+- 同构替换做过：换 `zipformer-libri-giga-70M-2023-04-04`（decoder/joiner 仅 vocab 6254→500）。
 
-**测过的（Android 真机，但本图没有这一列）**
+**运行时（Android 真机，不在本图平台列内）**
 
-- 2026-10-25：`apktool` 拆包 + `uber-apk-signer` 重签的 **en-patched APK 卸载原版后安装成功**；
-- 这意味 ncnn 推理在我们手里**确实跑起来过**，只是跑在 `arm64-v8a` + Vulkan，不是这张图的任何一个格子。
+- 2026-10-25：`apktool` 拆包 + `uber-apk-signer` 重签后 **APK 卸载原版即安装成功**，跑的是 `arm64-v8a` + Vulkan。
+- 也就是说 ncnn 推理确实跑起来过，但它落在图的平台列之外。
 
-**没测过的（Windows x86-64 运行时，即本图该格）**
+**运行时（Windows x86-64，即本图该格）**
 
-- 本机 `.venv` 与系统 Python **均无 `sherpa_ncnn`**；全仓 `.py` 里**没有 `import sherpa_ncnn`**；
-- `ASR升级评估报告.md` 里那些 `RTF 0.3~0.6` 自己标了「⚠️ 基于公开 benchmark 的**估算值**……落锤前按附录命令实测」——**是估算，不是实测**，不能拿来给格子染色。
+- 本机 `.venv` 与系统 Python **均无 `sherpa_ncnn`**；全仓 `.py` **无 `import sherpa_ncnn`**；
+- `ASR升级评估报告.md` 的 `RTF 0.3~0.6` 在该文件里自标「⚠️ 基于公开 benchmark 的**估算值**」，不能当实测用。
 
-→ 所以该格写「ok · 运行时未测」：**模型在、轮子在、路是通的，但这台机器上没开过车。**
+→ 该格因此记「ok · 运行时未测」：模型在、轮子在、路是通的，但这台机器上没开过车。
 
-## 已知缺口：这张图缺一列 Android arm64
+## 覆盖范围：缺一列 Android arm64
 
-我们唯一亲手跑过 ncnn 的平台（Android arm64 + Vulkan）不在图的平台列里。这不是排版问题，是**测绘范围与自身证据不匹配**：
-
-- 图的平台列选的是"用户要装到哪里"（x86-64 / x86+GPU / Windows arm64）；
-- 而我们真正跑过的是"我们手上有什么设备"（x86-64 Windows + 一台 Android 手机）。
-
-两者不重合 → 于是出现了"最有实测的一格不在图上，图上最缺实测的一格恰好是主推方案的对位竞品"这种荒唐局面。
-
-下一版要么加 `Android arm64` 列，要么把 Android 那条数据移出本文、单列一份移动端说明。**在此之前不许把 Android 的体验当成图上的数据引用。**
+图的平台列是按"用户要装到哪里"选的（x86-64 / x86+GPU / Windows arm64），而实际跑过的设备里有一台 Android 手机。
+两者不重合，于是**唯一有 ncnn 真机数据的平台不在图内**。补列之前，Android 的体验不能被当作图上的数据引用。
 
 ## 逐格说明（12 条）
 
@@ -149,48 +144,40 @@
 
 ## 重新生成（改图不用重画）
 
-只改 `matrix.svg`，然后重新出 PNG / PDF：
+两张图同源同布局，只有文案语言不同。改 `matrix-zh.svg` / `matrix-en.svg` 后各自重出：
 
 ```bash
 cd docs/bench
 
-# 注意：必须用「绝对 Windows 路径」拼 file:// URL。
+# 必须用「绝对 Windows 路径」拼 file:// URL。
 # Git Bash 下 $PWD 是 /d/projects/...，拼出来是 file:////d/... ，Edge 会报 ERR_FILE_NOT_FOUND 并静默不截图。
 W='D:/projects/whisper-ext/docs/bench'
 EDGE="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
 
-printf '<!doctype html><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden;background:#fff}img{display:block;width:1000px;height:780px}</style><img src="matrix.svg">' > _r.html
-"$EDGE" --headless=new --disable-gpu --hide-scrollbars \
-  --default-background-color=ffffffff --window-size=1000,780 \
-  --screenshot="$W/matrix.png" "file:///$W/_r.html"
-sleep 4   # msedge 会先返回、后写文件，不等会拿到上一次的图
+for L in zh en; do
+  printf '<!doctype html><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden;background:#fff}img{display:block;width:1000px;height:780px}</style><img src="matrix-%s.svg">' "$L" > _r.html
+  "$EDGE" --headless=new --disable-gpu --hide-scrollbars \
+    --default-background-color=ffffffff --window-size=1000,780 \
+    --screenshot="$W/matrix-$L.png" "file:///$W/_r.html"
+  sleep 4   # msedge 先返回、后写文件，不等会读到上一版
 
-printf '<!doctype html><meta charset="utf-8"><style>@page{size:1000px 780px;margin:0}html,body{margin:0}img{display:block;width:1000px;height:780px}</style><img src="matrix.svg">' > _p.html
-"$EDGE" --headless=new --disable-gpu --no-pdf-header-footer \
-  --print-to-pdf="$W/matrix.pdf" "file:///$W/_p.html"
-sleep 4
+  printf '<!doctype html><meta charset="utf-8"><style>@page{size:1000px 780px;margin:0}html,body{margin:0}img{display:block;width:1000px;height:780px}</style><img src="matrix-%s.svg">' "$L" > _p.html
+  "$EDGE" --headless=new --disable-gpu --no-pdf-header-footer \
+    --print-to-pdf="$W/matrix-$L.pdf" "file:///$W/_p.html"
+  sleep 4
+done
 rm -f _r.html _p.html
 ```
 
 `_r.html` / `_p.html` 是临时文件，不提交。
 
-**两个已验证的坑**（都踩过）：
+**两个已验证的坑**：
 1. `file:///$PWD/...` 不行——URL 会变成 `file:////d/projects/...`，Edge 直接 `ERR_FILE_NOT_FOUND`，而且**退出码是 0**，看起来像成功；
-2. 不加 `sleep` 会在文件还没写完时就去 `ls`，看到的还是旧图的体积与 md5。**判断是否真的重出，要比 md5，不要看时间戳。**
+2. 不加 `sleep` 会在文件还没写完时就去 `ls`，看到的还是旧图的体积与 md5。**判断是否真的重出，比 md5，别信时间戳。**
 
-## 修订记录（结论改过一次，理由留档）
+## 图与产物的对应
 
-| 版本 | 日期 | 变了什么 | 为什么 |
-|---|---|---|---|
-| v1 | 2026-11-12 | 主结论：「只有 1 格同时满足 CPU + 流式 + 可分发」 | 初版 |
-| **v2** | **2026-11-12** | **改为「2 格通过，其中 1 格实测过」**；ncnn x86-CPU 由 `limited` 上调为 `ok · 运行时未测` | 复核 upstream 时发现：sherpa-ncnn 的 release tag `asr-models`（2025-09-13）已发布 SenseVoice 的 ncnn 预编译模型包。v1 里写的「ncnn 没有更强的模型可换」当时基于旧的双语模型结论（换皮、md5 一致），没跟上 2025-09 的发布——**是我们的漏检，不是 ncnn 的缺陷**。 |
-| **v2.1** | **2026-11-12** | 标签细化为「运行时未测」，并补 `L2′ 只测模型侧` 一级；新增「ncnn 到底测过什么」「缺一列 Android arm64」两节 | 用户质疑「ncnn 试验过，有实测」。核对后确认：**Android 真机跑过**（改造 APK），**Windows x86-64 运行时从未装过**（`.venv` 无 `sherpa_ncnn`）。v2 那句「只跑过 zipformer / bilingual」把两个平台混成了一个。 |
-
-v1 的错误性质值得写下来：**它是一条"对我们有利"的错误**——把竞品方案判死，让自家路径显得唯一。这类错误最容易不被自查。
-所以本文件现在强制两条：主结论必须能被读图的人独立复算；每条降级都必须指向一个**可复核的外部事实**，不能是"我们试过觉得不行"。
-
-## 版本
-
-- `2026-11-12` v2：主结论下调、ncnn 格上调、新增证据分级表与修订记录。
-- `2026-11-12` v1：4×3 矩阵，12 格，5 条注脚。
-- 图源是 `matrix.svg`（可编辑），`matrix.png` 用于社交平台，`matrix.pdf` 用于打印/引用。
+| 文件 | 语言 | 用途 |
+|---|---|---|
+| `matrix-zh.svg` / `.png` / `.pdf` | 中文 | 哔哩哔哩、小红书、知乎、中文 README |
+| `matrix-en.svg` / `.png` / `.pdf` | English | X、Hugging Face、英文 README |

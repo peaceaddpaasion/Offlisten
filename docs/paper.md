@@ -13,8 +13,7 @@
 
 > **状态声明（前置，不放在最后）**
 > 本稿目前是**文档依据为主、实测为辅**：12 个格子里 5 格有官方依据、1 格有本机运行时实测、1 格只做了模型侧取证、5 格为推断。
-> 主结论已修订过一次，修订原因见 `docs/negative-results.md` N-01。
-> **在补上"同模型跨格式 RTF/CER"之前，本稿不能被称为 benchmark。**
+> **在补上"同模型跨格式 RTF/CER"之前，本稿不能被称为 benchmark。** 数据来源与逐格依据见 `docs/bench/README.md`。
 
 ---
 
@@ -118,7 +117,7 @@
 
 ## 4 结果
 
-主图见 `docs/bench/matrix.svg`（`matrix.png` / `matrix.pdf` 为导出版）。
+主图见 `docs/bench/matrix-zh.svg`（中文）与 `matrix-en.svg`（English）；`matrix-{zh,en}.png/.pdf` 为导出版。
 
 ### 4.1 核心计数
 
@@ -153,10 +152,13 @@ $$|\{(r,p): c_1 \wedge c_2 \wedge c_3\}| = 2$$
 
 ## 5 阴性结果
 
-完整记账见 `docs/negative-results.md`。与本节结论直接相关的两条：
+完整记账见 `docs/negative-results.md`。其中两条直接决定了本文的方法：
 
-- **N-01**：主结论 v1（"只有 1 格"）错误。原因是把"ncnn 无更强模型"当成既定事实，没跟上 2025-09 的发布。**该错误对我们有利**——它让自家路径显得唯一，因此最难被自查。
-- **N-02**："测过"必须带宾语。模型取证 ≠ 运行时实测；一台机器上跑通 ≠ 所有平台跑通。
+- **功耗维度被整维砍掉**（N-01）。原因不是不重要，是**测不了且不可比**——放进去等于假装测过。于是本文只留二维。
+- **"模型取证 ≠ 运行时实测"**（见 §3.2 的 L2′）。模型文件存在、结构对得上、md5 一致，只说明"这个模型是它宣称的那个"；
+  说明不了"它在这台机器上多快"。本文把这两件事分成两级，就是为了不让前者偷偷顶替后者。
+
+这两条的共同点：**它们的价值在于标出了一个我们本来会含糊过去的地方。**
 
 ---
 
@@ -209,7 +211,7 @@ Offlisten project. "The Distributable Empty Set: A Usability Survey of
 https://github.com/peaceaddpaasion/Offlisten  (commit <sha>)
 ```
 
-若只需要那张图，引用 `docs/bench/matrix.pdf` 并注明版本日；**不要引用 `matrix.png` 当性能 benchmark**——它是选型图，不是测速表。
+若只需要那张图，引用 `docs/bench/matrix-en.pdf` 并注明版本日；**不要拿它当性能 benchmark**——它是选型图，不是测速表。
 
 ---
 

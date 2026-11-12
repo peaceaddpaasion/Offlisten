@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 780" width="1000" height="780" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <pattern id="none" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#ffffff"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#c9d2d9" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <rect width="1000" height="780" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="40" y="50" font-size="30" font-weight="700" fill="#12181d">Which backend can you actually ship?</text>
+  <text x="40" y="82" font-size="16" fill="#5a646e">On-device ASR runtimes: 4 backends × 3 target platforms. Darker = closer to shippable. Nov 2026</text>
+
+  <!-- Color legend -->
+  <g font-size="11.5" fill="#5a646e">
+    <rect x="40" y="100" width="40" height="12" fill="#d9e8e0"/>
+    <rect x="80" y="100" width="40" height="12" fill="#a8d0bd"/>
+    <rect x="120" y="100" width="40" height="12" fill="#5fa384"/>
+    <rect x="160" y="100" width="40" height="12" fill="#2f7d5c"/>
+    <rect x="200" y="100" width="40" height="12" fill="#17513a"/>
+    <text x="248" y="111">less usable</text>
+    <text x="322" y="111">→</text>
+    <text x="342" y="111">ship today</text>
+    <rect x="430" y="100" width="40" height="12" fill="url(#none)" stroke="#c9d2d9"/>
+    <text x="478" y="111">= does not exist (see footnote for the vendor source)</text>
+  </g>
+
+  <!-- Headline -->
+  <text x="40" y="146" font-size="17" font-weight="600" fill="#17513a">Hard constraints — CPU-capable · streaming · distributable: only 2 of 12 cells pass.</text>
+
+  <!-- Column headers -->
+  <g font-size="14" font-weight="600" fill="#3c4650">
+    <text x="200" y="180">x86-64 CPU</text>
+    <text x="460" y="180">x86-64 + NVIDIA GPU</text>
+    <text x="720" y="180">Windows arm64</text>
+  </g>
+
+  <!-- Row labels -->
+  <g font-size="15" font-weight="600" fill="#12181d" text-anchor="end">
+    <text x="185" y="245">sherpa-onnx</text>
+    <text x="185" y="355">sherpa-ncnn</text>
+    <text x="185" y="465">GGUF (llama.cpp)</text>
+    <text x="185" y="575">TensorRT</text>
+  </g>
+  <g font-size="11" fill="#7b868f" text-anchor="end">
+    <text x="185" y="263">ONNX Runtime</text>
+    <text x="185" y="373">ncnn</text>
+    <text x="185" y="483">ggml</text>
+    <text x="185" y="593">NVIDIA SDK</text>
+  </g>
+
+  <!-- ROW 1: sherpa-onnx -->
+  <g>
+    <rect x="200" y="190" width="250" height="100" rx="6" fill="#17513a"/>
+    <text x="218" y="228" font-size="17" font-weight="700" fill="#ffffff">best</text>
+    <text x="218" y="252" font-size="12.5" fill="#cfe6da">ships today · 96 MB Lite</text>
+    <text x="218" y="272" font-size="12.5" fill="#cfe6da">streaming + 5 languages</text>
+
+    <rect x="460" y="190" width="250" height="100" rx="6" fill="#2f7d5c"/>
+    <text x="478" y="228" font-size="17" font-weight="700" fill="#ffffff">ok</text>
+    <text x="478" y="252" font-size="12.5" fill="#dcece4">CUDA EP exists</text>
+    <text x="478" y="272" font-size="12.5" fill="#dcece4">not enabled / untested here</text>
+
+    <rect x="720" y="190" width="250" height="100" rx="6" fill="#5fa384"/>
+    <text x="738" y="228" font-size="17" font-weight="700" fill="#ffffff">ok</text>
+    <text x="738" y="252" font-size="12.5" fill="#eaf5ef">win_arm64 wheel exists</text>
+    <text x="738" y="272" font-size="12.5" fill="#eaf5ef">no hardware to test</text>
+  </g>
+
+  <!-- ROW 2: sherpa-ncnn -->
+  <g>
+    <rect x="200" y="300" width="250" height="100" rx="6" fill="#5fa384"/>
+    <text x="218" y="338" font-size="17" font-weight="700" fill="#ffffff">ok · runtime untested</text>
+    <text x="218" y="362" font-size="12.5" fill="#eaf5ef">SenseVoice ncnn models ⑤</text>
+    <text x="218" y="382" font-size="12.5" fill="#eaf5ef">never installed here · no RTF</text>
+
+    <rect x="460" y="300" width="250" height="100" rx="6" fill="#2f7d5c"/>
+    <text x="478" y="338" font-size="17" font-weight="700" fill="#ffffff">ok</text>
+    <text x="478" y="362" font-size="12.5" fill="#dcece4">Vulkan / GPU path</text>
+    <text x="478" y="382" font-size="12.5" fill="#dcece4">static link, no extra deps</text>
+
+    <rect x="720" y="300" width="250" height="100" rx="6" fill="#d9e8e0"/>
+    <text x="738" y="338" font-size="17" font-weight="700" fill="#3c4650">no wheel</text>
+    <text x="738" y="362" font-size="12.5" fill="#4b565f">sherpa-ncnn 2.1.15 ships</text>
+    <text x="738" y="382" font-size="12.5" fill="#4b565f">win32 / win_amd64 only ③</text>
+  </g>
+
+  <!-- ROW 3: GGUF -->
+  <g>
+    <rect x="200" y="410" width="250" height="100" rx="6" fill="#5fa384"/>
+    <text x="218" y="448" font-size="17" font-weight="700" fill="#ffffff">ok, but non-streaming</text>
+    <text x="218" y="472" font-size="12.5" fill="#eaf5ef">SenseVoiceSmall-GGUF</text>
+    <text x="218" y="492" font-size="12.5" fill="#eaf5ef">8.01% CER @ 8 threads ④</text>
+
+    <rect x="460" y="410" width="250" height="100" rx="6" fill="#5fa384"/>
+    <text x="478" y="448" font-size="17" font-weight="700" fill="#ffffff">ok</text>
+    <text x="478" y="472" font-size="12.5" fill="#eaf5ef">llama.cpp CUDA backend</text>
+    <text x="478" y="492" font-size="12.5" fill="#eaf5ef">single binary, zero deps</text>
+
+    <rect x="720" y="410" width="250" height="100" rx="6" fill="#d9e8e0"/>
+    <text x="738" y="448" font-size="17" font-weight="700" fill="#3c4650">unverified</text>
+    <text x="738" y="472" font-size="12.5" fill="#4b565f">llama.cpp builds for arm64</text>
+    <text x="738" y="492" font-size="12.5" fill="#4b565f">no confirmed prebuilt</text>
+  </g>
+
+  <!-- ROW 4: TensorRT -->
+  <g>
+    <rect x="200" y="520" width="250" height="100" rx="6" fill="url(#none)" stroke="#c9d2d9"/>
+    <text x="218" y="558" font-size="17" font-weight="700" fill="#7b868f">does not exist</text>
+    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA: "Does TensorRT</text>
+    <text x="218" y="602" font-size="12.5" fill="#7b868f">run on a CPU? No." ①</text>
+
+    <rect x="460" y="520" width="250" height="100" rx="6" fill="#a8d0bd"/>
+    <text x="478" y="558" font-size="17" font-weight="700" fill="#12301f">ok, per-device engine</text>
+    <text x="478" y="582" font-size="12.5" fill="#1d4732">engine bound to build device</text>
+    <text x="478" y="602" font-size="12.5" fill="#1d4732">JetPack unsupported by 11.3 ②</text>
+
+    <rect x="720" y="520" width="250" height="100" rx="6" fill="url(#none)" stroke="#c9d2d9"/>
+    <text x="738" y="558" font-size="17" font-weight="700" fill="#7b868f">does not exist</text>
+    <text x="738" y="582" font-size="12.5" fill="#7b868f">no Windows arm64 target;</text>
+    <text x="738" y="602" font-size="12.5" fill="#7b868f">Jetson is Linux-only ①②</text>
+  </g>
+
+  <!-- Footnotes -->
+  <line x1="40" y1="646" x2="960" y2="646" stroke="#e2e8ec"/>
+  <g font-size="11.5" fill="#5a646e">
+    <text x="40" y="670">① TensorRT on CPU is not "slow" — it does not exist. NVIDIA FAQ: "Does TensorRT run on a CPU? No. TensorRT needs an NVIDIA GPU or Jetson module."</text>
+    <text x="40" y="690">② TensorRT engines are bound to the device they were built on; hardware compatibility starts at Ampere; JetPack / Jetson is not supported, and 11.3 drops JetPack.</text>
+    <text x="40" y="710">③ Measured via PyPI JSON: sherpa-ncnn 2.1.15 ships cp313 win32 / win_amd64 only, no win_arm64; sherpa-onnx 2.0.1 does ship win_arm64.</text>
+    <text x="40" y="730">④ GGUF ASR is mostly non-streaming today (SenseVoiceSmall-GGUF = SAN-M encoder + CTC, whole-utterance). Its strength is offline batch, not live captions.</text>
+    <text x="40" y="750">⑤ sherpa-ncnn ships prebuilt SenseVoice models (release tag asr-models, 2025-09-13, int8 / float32). What is missing is measurement, not models.</text>
+    <text x="40" y="770">⑥ ncnn has only been run here on an Android device (repacked APK, 2026-10-25), never on Windows x86-64. Android is not a column in this matrix.</text>
+  </g>
+</svg>

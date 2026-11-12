@@ -69,7 +69,7 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 这个结论不需要训练任何模型，只需要读文档 + 两次 PyPI 查询。
 
 若再叠上「必须流式」（会议实时字幕的硬需求），只剩 **2 格**——`sherpa-onnx` 与 `sherpa-ncnn` 的 x86-64 CPU。
-精确计数、逐格证据等级与修订过程见 `docs/bench/README.md`；形式化表述见 `docs/paper.md`。
+精确计数与逐格证据等级见 `docs/bench/README.md`；形式化表述见 `docs/paper.md`。
 
 ## 5. 最小实验集：12–16 格，不是全跑
 
@@ -103,7 +103,7 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 
 ## 7. 产出形态
 
-1. **主图**：**二维矩阵**（格式 × 平台），格内写结论词，**颜色深浅 = 可用度**，不存在的格子用斜纹 + 编号注脚指向官方依据。已产出：`docs/bench/matrix.svg` / `.png` / `.pdf`。
+1. **主图**：**二维矩阵**（格式 × 平台），格内写结论词，**颜色深浅 = 可用度**，不存在的格子用斜纹 + 编号注脚指向官方依据。已产出中英各一套：`docs/bench/matrix-{zh,en}.svg` / `.png` / `.pdf`。
 2. **副图**：同模型（SenseVoice）三格式的 RTF-线程曲线 —— 证明"线程不是越多越好"（14M 模型在 N100 上多线程是负优化的已有实证）。
 3. **数据表 + 复现脚本**：每条数据附音频片段 hash、模型文件 hash、命令行。
 4. **一页 README**：结论先行，给"我要做 X 场景，该选哪个格式"的决策树。
@@ -131,7 +131,7 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 这两个平台要的东西不一样，图要用两次，但文案不能一样。
 
 **X（传播，靠一张图）**
-- 发 `docs/bench/matrix.png`，配 **2 句**结论，不放长文。
+- 发 `docs/bench/matrix-en.png`，配 **2 句**结论，不放长文。
 - 英文帖模板（X 是国际场）：
   > 4 runtimes × 3 platforms = 12 combos. Only **one** can ship to an unknown Windows machine.
   > TensorRT doesn't run on CPU (NVIDIA's own FAQ). sherpa-ncnn has no win_arm64 wheel.
@@ -153,7 +153,7 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 |---|---|
 | `docs/paper.md` | 工作稿：形式化问题、证据分级、效度威胁、可证伪条件 |
 | `docs/negative-results.md` | 负结果册：11 条没成的事 + 判定 + 证据路径 |
-| `docs/bench/matrix.svg` | 图源，可编辑（改一格不用重画） |
-| `docs/bench/matrix.png` | 社交平台发布用（1000×780） |
-| `docs/bench/matrix.pdf` | 打印 / 引用 |
+| `docs/bench/matrix-zh.svg` / `matrix-en.svg` | 图源，可编辑（改一格不用重画） |
+| `docs/bench/matrix-zh.png` / `matrix-en.png` | 中文平台 / X 与 HF 发布用（1000×780） |
+| `docs/bench/matrix-zh.pdf` / `matrix-en.pdf` | 打印 / 引用 |
 | `docs/bench/README.md` | 逐格原因、证据分级、不测清单、贡献模板、决策树 |

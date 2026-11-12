@@ -9,8 +9,8 @@
   <rect width="1000" height="780" fill="#ffffff"/>
 
   <!-- 标题 -->
-  <text x="40" y="50" font-size="30" font-weight="700" fill="#12181d">Which backend can you actually ship?</text>
-  <text x="40" y="82" font-size="16" fill="#5a646e">端侧 ASR 运行时可用性：4 个运行时 × 3 个目标平台。颜色越深越可用。v2 · 2026-11-12</text>
+  <text x="40" y="50" font-size="30" font-weight="700" fill="#12181d">你真正能发出去的后端是哪一个？</text>
+  <text x="40" y="82" font-size="16" fill="#5a646e">端侧 ASR 运行时：4 个后端 × 3 个目标平台。颜色越深越接近可发布。2026-11</text>
 
   <!-- 色带图例 -->
   <g font-size="11.5" fill="#5a646e">
@@ -19,9 +19,9 @@
     <rect x="120" y="100" width="40" height="12" fill="#5fa384"/>
     <rect x="160" y="100" width="40" height="12" fill="#2f7d5c"/>
     <rect x="200" y="100" width="40" height="12" fill="#17513a"/>
-    <text x="248" y="111">less usable</text>
-    <text x="322" y="111">→</text>
-    <text x="342" y="111">ship today</text>
+    <text x="248" y="111">越难发版</text>
+    <text x="300" y="111">→</text>
+    <text x="320" y="111">今天就能发版</text>
     <rect x="430" y="100" width="40" height="12" fill="url(#none)" stroke="#c9d2d9"/>
     <text x="478" y="111">= 该格不存在（附官方依据，见注脚）</text>
   </g>
@@ -54,73 +54,73 @@
   <!-- ROW 1: sherpa-onnx -->
   <g>
     <rect x="200" y="190" width="250" height="100" rx="6" fill="#17513a"/>
-    <text x="218" y="228" font-size="17" font-weight="700" fill="#ffffff">best</text>
-    <text x="218" y="252" font-size="12.5" fill="#cfe6da">ships today · 96 MB Lite</text>
-    <text x="218" y="272" font-size="12.5" fill="#cfe6da">streaming + 5 languages</text>
+    <text x="218" y="228" font-size="17" font-weight="700" fill="#ffffff">首选</text>
+    <text x="218" y="252" font-size="12.5" fill="#cfe6da">今天就能发 · 96 MB Lite</text>
+    <text x="218" y="272" font-size="12.5" fill="#cfe6da">流式 + 5 种语言 + 标点</text>
 
     <rect x="460" y="190" width="250" height="100" rx="6" fill="#2f7d5c"/>
-    <text x="478" y="228" font-size="17" font-weight="700" fill="#ffffff">ok</text>
-    <text x="478" y="252" font-size="12.5" fill="#dcece4">CUDA EP exists</text>
-    <text x="478" y="272" font-size="12.5" fill="#dcece4">not enabled / untested here</text>
+    <text x="478" y="228" font-size="17" font-weight="700" fill="#ffffff">可用</text>
+    <text x="478" y="252" font-size="12.5" fill="#dcece4">ONNX Runtime 有 CUDA EP</text>
+    <text x="478" y="272" font-size="12.5" fill="#dcece4">本产品未启用 · 未实测</text>
 
     <rect x="720" y="190" width="250" height="100" rx="6" fill="#5fa384"/>
-    <text x="738" y="228" font-size="17" font-weight="700" fill="#ffffff">ok</text>
-    <text x="738" y="252" font-size="12.5" fill="#eaf5ef">win_arm64 wheel exists</text>
-    <text x="738" y="272" font-size="12.5" fill="#eaf5ef">no hardware to test</text>
+    <text x="738" y="228" font-size="17" font-weight="700" fill="#ffffff">可用</text>
+    <text x="738" y="252" font-size="12.5" fill="#eaf5ef">有 win_arm64 轮子</text>
+    <text x="738" y="272" font-size="12.5" fill="#eaf5ef">无硬件可测</text>
   </g>
 
   <!-- ROW 2: sherpa-ncnn -->
   <g>
     <rect x="200" y="300" width="250" height="100" rx="6" fill="#5fa384"/>
-    <text x="218" y="338" font-size="17" font-weight="700" fill="#ffffff">ok · 运行时未测</text>
+    <text x="218" y="338" font-size="17" font-weight="700" fill="#ffffff">可用 · 运行时未测</text>
     <text x="218" y="362" font-size="12.5" fill="#eaf5ef">官方已发 SenseVoice ncnn 包 ⑤</text>
     <text x="218" y="382" font-size="12.5" fill="#eaf5ef">本机从未装 · 无 RTF 数据</text>
 
     <rect x="460" y="300" width="250" height="100" rx="6" fill="#2f7d5c"/>
-    <text x="478" y="338" font-size="17" font-weight="700" fill="#ffffff">ok</text>
-    <text x="478" y="362" font-size="12.5" fill="#dcece4">Vulkan / GPU path</text>
-    <text x="478" y="382" font-size="12.5" fill="#dcece4">static link, no extra deps</text>
+    <text x="478" y="338" font-size="17" font-weight="700" fill="#ffffff">可用</text>
+    <text x="478" y="362" font-size="12.5" fill="#dcece4">走 Vulkan / GPU 路径</text>
+    <text x="478" y="382" font-size="12.5" fill="#dcece4">静态链接、无额外依赖</text>
 
     <rect x="720" y="300" width="250" height="100" rx="6" fill="#d9e8e0"/>
-    <text x="738" y="338" font-size="17" font-weight="700" fill="#3c4650">no wheel</text>
-    <text x="738" y="362" font-size="12.5" fill="#4b565f">sherpa-ncnn 2.1.15 ships</text>
-    <text x="738" y="382" font-size="12.5" fill="#4b565f">win32 / win_amd64 only ③</text>
+    <text x="738" y="338" font-size="17" font-weight="700" fill="#3c4650">无轮子</text>
+    <text x="738" y="362" font-size="12.5" fill="#4b565f">sherpa-ncnn 2.1.15 只发</text>
+    <text x="738" y="382" font-size="12.5" fill="#4b565f">win32 / win_amd64 ③</text>
   </g>
 
   <!-- ROW 3: GGUF -->
   <g>
     <rect x="200" y="410" width="250" height="100" rx="6" fill="#5fa384"/>
-    <text x="218" y="448" font-size="17" font-weight="700" fill="#ffffff">ok, but non-streaming</text>
+    <text x="218" y="448" font-size="17" font-weight="700" fill="#ffffff">可用，但非流式</text>
     <text x="218" y="472" font-size="12.5" fill="#eaf5ef">SenseVoiceSmall-GGUF</text>
-    <text x="218" y="492" font-size="12.5" fill="#eaf5ef">8.01% CER @ 8 threads ④</text>
+    <text x="218" y="492" font-size="12.5" fill="#eaf5ef">8 线程 8.01% CER ④</text>
 
     <rect x="460" y="410" width="250" height="100" rx="6" fill="#5fa384"/>
-    <text x="478" y="448" font-size="17" font-weight="700" fill="#ffffff">ok</text>
-    <text x="478" y="472" font-size="12.5" fill="#eaf5ef">llama.cpp CUDA backend</text>
-    <text x="478" y="492" font-size="12.5" fill="#eaf5ef">single binary, zero deps</text>
+    <text x="478" y="448" font-size="17" font-weight="700" fill="#ffffff">可用</text>
+    <text x="478" y="472" font-size="12.5" fill="#eaf5ef">llama.cpp 有 CUDA 后端</text>
+    <text x="478" y="492" font-size="12.5" fill="#eaf5ef">单文件、零依赖</text>
 
     <rect x="720" y="410" width="250" height="100" rx="6" fill="#d9e8e0"/>
-    <text x="738" y="448" font-size="17" font-weight="700" fill="#3c4650">unverified</text>
-    <text x="738" y="472" font-size="12.5" fill="#4b565f">llama.cpp builds, but no</text>
-    <text x="738" y="492" font-size="12.5" fill="#4b565f">confirmed prebuilt arm64</text>
+    <text x="738" y="448" font-size="17" font-weight="700" fill="#3c4650">未验证</text>
+    <text x="738" y="472" font-size="12.5" fill="#4b565f">llama.cpp 本身能编 arm64</text>
+    <text x="738" y="492" font-size="12.5" fill="#4b565f">预编译产物未见确认</text>
   </g>
 
   <!-- ROW 4: TensorRT -->
   <g>
     <rect x="200" y="520" width="250" height="100" rx="6" fill="url(#none)" stroke="#c9d2d9"/>
-    <text x="218" y="558" font-size="17" font-weight="700" fill="#7b868f">does not exist</text>
-    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA: "Does TensorRT</text>
-    <text x="218" y="602" font-size="12.5" fill="#7b868f">run on a CPU? No." ①</text>
+    <text x="218" y="558" font-size="17" font-weight="700" fill="#7b868f">不存在</text>
+    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA 原文：TensorRT</text>
+    <text x="218" y="602" font-size="12.5" fill="#7b868f">不能在 CPU 上运行 ①</text>
 
     <rect x="460" y="520" width="250" height="100" rx="6" fill="#a8d0bd"/>
-    <text x="478" y="558" font-size="17" font-weight="700" fill="#12301f">ok, per-device engine</text>
-    <text x="478" y="582" font-size="12.5" fill="#1d4732">engine bound to build device</text>
-    <text x="478" y="602" font-size="12.5" fill="#1d4732">JetPack unsupported by 11.3 ②</text>
+    <text x="478" y="558" font-size="17" font-weight="700" fill="#12301f">可用，一机一引擎</text>
+    <text x="478" y="582" font-size="12.5" fill="#1d4732">engine 绑定构建它的设备</text>
+    <text x="478" y="602" font-size="12.5" fill="#1d4732">11.3 起不再支持 JetPack ②</text>
 
     <rect x="720" y="520" width="250" height="100" rx="6" fill="url(#none)" stroke="#c9d2d9"/>
-    <text x="738" y="558" font-size="17" font-weight="700" fill="#7b868f">does not exist</text>
-    <text x="738" y="582" font-size="12.5" fill="#7b868f">no Windows arm64 target;</text>
-    <text x="738" y="602" font-size="12.5" fill="#7b868f">Jetson is Linux-only ①②</text>
+    <text x="738" y="558" font-size="17" font-weight="700" fill="#7b868f">不存在</text>
+    <text x="738" y="582" font-size="12.5" fill="#7b868f">没有 Windows arm64 target</text>
+    <text x="738" y="602" font-size="12.5" fill="#7b868f">Jetson 走 Linux ①②</text>
   </g>
 
   <!-- 注脚 -->
@@ -130,7 +130,7 @@
     <text x="40" y="690">② TensorRT engine 默认只与构建它的设备兼容；hardware compatibility 仅支持 Ampere 及以后，且 JetPack / Jetson 不支持。11.3 不再支持 JetPack。</text>
     <text x="40" y="710">③ 实测 PyPI JSON：sherpa-ncnn 2.1.15 只有 cp313 win32 / win_amd64 轮子，无 win_arm64；sherpa-onnx 2.0.1 有 win_arm64。</text>
     <text x="40" y="730">④ 现有 GGUF ASR 基本是非流式（SenseVoiceSmall-GGUF = SAN-M encoder + CTC，整段输入）。它的强项是离线批量与单文件零依赖，不是实时字幕。</text>
-    <text x="40" y="750">⑤ 修正：此前「ncnn 没有更强的模型可换」不成立——官方 release tag asr-models（2025-09-13）已发 SenseVoice 的 ncnn 模型包（int8/float32）。缺的不是模型，是实测。</text>
+    <text x="40" y="750">⑤ sherpa-ncnn 官方已发 SenseVoice 的 ncnn 预编译模型包（release tag asr-models，2025-09-13，含 int8 / float32）。缺的不是模型，是实测。</text>
+    <text x="40" y="770">⑥ 本机只在 Android 真机上跑过 ncnn（2026-10-25 改造 APK 装机），Windows x86-64 未装 sherpa_ncnn；Android 不在本图平台列内。</text>
   </g>
-  <text x="40" y="770" font-size="11.5" fill="#5a646e">⑥ 本机 ncnn 只经「改造 APK」在 Android 真机跑过（2026-10-25 装机成功）；Windows x86-64 从未安装 sherpa_ncnn，故该格无 RTF。Android 不在本图平台列，是这版的已知缺口。</text>
 </svg>

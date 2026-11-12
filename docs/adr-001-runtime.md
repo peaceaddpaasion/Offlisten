@@ -2,7 +2,7 @@
 
 - 状态：**已采纳**（2026-11-12 复核确认）
 - 影响范围：`pc_transcriber.py`、`pc_models/`、安装包体积、Windows on ARM 覆盖
-- **修订 2026-11-12**：下方「理由 1（质量天花板）」**已作废**——sherpa-ncnn 官方 release tag `asr-models`（2025-09-13）已发布 SenseVoice 的 ncnn 模型包（int8 / float32，两版日期）。"ncnn 没有更强的模型可换"不成立。决议本身不变，剩余三条理由仍成立。作废过程记入 `docs/negative-results.md` N-01 / N-05。
+- **修订 2026-11-12**：下方「理由 1（质量天花板）」**已作废**——sherpa-ncnn 官方 release tag `asr-models`（2025-09-13）已发布 SenseVoice 的 ncnn 模型包（int8 / float32，两版日期）。"ncnn 没有更强的模型可换"不成立。决议本身不变，剩余三条理由仍成立。运行时的取舍与重新评估条件见 `docs/negative-results.md` N-08。
 
 ## 为什么需要这条记录
 

@@ -19,8 +19,12 @@
 这 2 格我们只拿 1 格做产品，另 1 格照样写进文档。
 这是这个小项目的分寸：**产品可以只给一个答案，测绘必须给出全部答案。**
 
+![端侧 ASR 运行时可用性矩阵：4 个后端 × 3 个平台，12 格里只有 2 格通过](docs/bench/matrix-zh.png)
+
+<sub>English version: [`docs/bench/matrix-en.png`](docs/bench/matrix-en.png) · 逐格原因与证据分级见 [`docs/bench/README.md`](docs/bench/README.md)</sub>
+
 - 想知道那张图怎么来的、凭什么能证伪 → [`docs/paper.md`](docs/paper.md)（工作稿）
-- 想看我们撞过的墙 → [`docs/negative-results.md`](docs/negative-results.md)（11 条，含推翻自己的那一条）
+- 想看哪些路我们试过并放弃了 → [`docs/negative-results.md`](docs/negative-results.md)（9 条，含放弃理由与证据）
 
 ---
 
@@ -113,8 +117,8 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 | 文件 | 内容 |
 |---|---|
 | `docs/paper.md` | **工作稿**：可分发空集测绘，含证据分级、效度威胁、可证伪条件 |
-| `docs/negative-results.md` | **负结果册**：11 条没成的事 + 判定 + 证据路径（含推翻自己主结论那条） |
-| `docs/bench/README.md` | 可用性矩阵成品：12 格逐格原因、证据分级、决策树、PR 模板（图见 `matrix.svg/png/pdf`） |
+| `docs/negative-results.md` | **负结果册**：9 条放弃/改法的路，每条附判定与证据路径 |
+| `docs/bench/README.md` | 可用性矩阵成品：12 格逐格原因、证据分级、决策树、PR 模板（图见 `matrix-zh` / `matrix-en` 两套） |
 | `docs/research-plan.md` | 长期展望：端侧 ASR 运行时可用性地图（维度定义、最小实验集、社区形态） |
 | `docs/adr-001-runtime.md` | ADR：ncnn 与 ONNX 曾并存，主线定为 ONNX（含取舍依据，部分理由已作废并标注） |
 | `docs/contract.md` | 扩展与后端之间的 API 契约（唯一接口约定） |
