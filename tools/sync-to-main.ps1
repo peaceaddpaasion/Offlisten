@@ -1,14 +1,15 @@
-﻿# 单向同步：本仓库（事实源）-> 主项目 whisper/extension（内测加载副本）。
+﻿# 单向同步：本仓库 extension/（事实源）-> 主项目 whisper/extension（内测加载副本）。
 # 禁止反向手改主项目副本；那边改了会在下次同步时被覆盖。
-# 注意：本文件必须存为 UTF-8 with BOM，否则 PowerShell 5.1 会按 ANSI 解码中文导致解析失败。
+# 本文件必须存为 UTF-8 with BOM，否则 PowerShell 5.1 会按 ANSI 解码中文导致解析失败。
 param(
     [string]$Target = ""
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$repo = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$ext = Join-Path $repo "extension"
 if ([string]::IsNullOrWhiteSpace($Target)) {
-    $Target = Join-Path (Split-Path -Parent $root) "whisper\extension"
+    $Target = Join-Path (Split-Path -Parent $repo) "whisper\extension"
 }
 
 if (-not (Test-Path $Target)) { throw ("目标目录不存在: " + $Target) }
@@ -18,7 +19,7 @@ $changed = New-Object System.Collections.ArrayList
 $same = 0
 
 foreach ($f in $files) {
-    $src = Join-Path $root $f
+    $src = Join-Path $ext $f
     $dst = Join-Path $Target $f
     if (-not (Test-Path $src)) { throw ("源文件缺失: " + $src) }
     if (Test-Path $dst) {
@@ -30,12 +31,12 @@ foreach ($f in $files) {
     [void]$changed.Add($f)
 }
 
-# icons 目录整体同步：manifest 引用了图标，副本缺图会直接加载失败。
-$iconSrc = Join-Path $root "icons"
+# icons 目录同步：manifest 引用了图标，副本缺图会直接加载失败。只同步 PNG。
+$iconSrc = Join-Path $ext "icons"
 $iconDst = Join-Path $Target "icons"
-if (-not (Test-Path $iconSrc)) { throw "源仓库缺 icons 目录" }
+if (-not (Test-Path $iconSrc)) { throw "源仓库缺 extension/icons 目录" }
 if (-not (Test-Path $iconDst)) { New-Item -ItemType Directory -Path $iconDst -Force | Out-Null }
-foreach ($img in Get-ChildItem $iconSrc -File) {
+foreach ($img in Get-ChildItem $iconSrc -Filter *.png -File) {
     $dstImg = Join-Path $iconDst $img.Name
     if ((Test-Path $dstImg) -and ((Get-FileHash $img.FullName -Algorithm SHA256).Hash -eq (Get-FileHash $dstImg -Algorithm SHA256).Hash)) {
         continue

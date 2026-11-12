@@ -1,13 +1,14 @@
-﻿# 打包：只收 MV3 运行需要的 4 个文件，不要把 scripts/docs 打进包里。
-# 注意：本文件必须存为 UTF-8 with BOM，否则 PowerShell 5.1 会按 ANSI 解码中文导致解析失败。
+﻿# 打包扩展：只收 MV3 运行需要的 4 个文件 + icons，不要把 engine/docs/tools 打进包里。
+# 本文件必须存为 UTF-8 with BOM，否则 PowerShell 5.1 会按 ANSI 解码中文导致解析失败。
 $ErrorActionPreference = "Stop"
 
-$root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$repo = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$ext = Join-Path $repo "extension"
 
 # PowerShell 5.1 的 Get-Content 默认按 ANSI 解码，必须显式指定 UTF8，否则中文 manifest 会被读坏。
-$manifest = Get-Content (Join-Path $root "manifest.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+$manifest = Get-Content (Join-Path $ext "manifest.json") -Raw -Encoding UTF8 | ConvertFrom-Json
 $version = $manifest.version
-$dist = Join-Path $root "dist"
+$dist = Join-Path $repo "dist"
 $stage = Join-Path $dist "stage"
 $zip = Join-Path $dist ("whisper-ext-" + $version + ".zip")
 
@@ -16,10 +17,15 @@ if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 
 foreach ($f in @("manifest.json", "popup.html", "popup.js", "service_worker.js")) {
-    Copy-Item (Join-Path $root $f) (Join-Path $stage $f)
+    Copy-Item (Join-Path $ext $f) (Join-Path $stage $f)
 }
-if (-not (Test-Path (Join-Path $root "icons"))) { throw "icons 目录缺失，manifest 里的图标会加载失败" }
-Copy-Item (Join-Path $root "icons") (Join-Path $stage "icons") -Recurse
+if (-not (Test-Path (Join-Path $ext "icons"))) { throw "extension/icons 目录缺失，manifest 里的图标会加载失败" }
+# 只收 PNG：同目录的 icon.svg / icon-16.svg 是源文件，不进发行包。
+foreach ($img in Get-ChildItem (Join-Path $ext "icons") -Filter *.png -File) {
+    $iconStage = Join-Path $stage "icons"
+    if (-not (Test-Path $iconStage)) { New-Item -ItemType Directory -Path $iconStage -Force | Out-Null }
+    Copy-Item $img.FullName (Join-Path $iconStage $img.Name)
+}
 
 # 打包前做静态检查：manifest 引用的文件必须真实存在，避免装上去才发现白屏或缺图标。
 $required = @($manifest.background.service_worker, $manifest.action.default_popup)
