@@ -18,10 +18,16 @@ New-Item -ItemType Directory -Path $stage -Force | Out-Null
 foreach ($f in @("manifest.json", "popup.html", "popup.js", "service_worker.js")) {
     Copy-Item (Join-Path $root $f) (Join-Path $stage $f)
 }
+if (-not (Test-Path (Join-Path $root "icons"))) { throw "icons 目录缺失，manifest 里的图标会加载失败" }
+Copy-Item (Join-Path $root "icons") (Join-Path $stage "icons") -Recurse
 
-# 打包前做静态检查：manifest 声明的文件必须真实存在，避免装上去才发现白屏。
+# 打包前做静态检查：manifest 引用的文件必须真实存在，避免装上去才发现白屏或缺图标。
+$required = @($manifest.background.service_worker, $manifest.action.default_popup)
+$required += @($manifest.icons.PSObject.Properties.Value)
+$required += @($manifest.action.default_icon.PSObject.Properties.Value)
 $missing = @()
-foreach ($f in @($manifest.background.service_worker, $manifest.action.default_popup)) {
+foreach ($f in $required) {
+    if ([string]::IsNullOrWhiteSpace($f)) { continue }
     if (-not (Test-Path (Join-Path $stage $f))) { $missing += $f }
 }
 if ($missing.Count -gt 0) { throw ("manifest 引用了不存在的文件: " + ($missing -join ", ")) }

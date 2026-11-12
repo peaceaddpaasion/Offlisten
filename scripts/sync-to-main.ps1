@@ -30,6 +30,20 @@ foreach ($f in $files) {
     [void]$changed.Add($f)
 }
 
+# icons 目录整体同步：manifest 引用了图标，副本缺图会直接加载失败。
+$iconSrc = Join-Path $root "icons"
+$iconDst = Join-Path $Target "icons"
+if (-not (Test-Path $iconSrc)) { throw "源仓库缺 icons 目录" }
+if (-not (Test-Path $iconDst)) { New-Item -ItemType Directory -Path $iconDst -Force | Out-Null }
+foreach ($img in Get-ChildItem $iconSrc -File) {
+    $dstImg = Join-Path $iconDst $img.Name
+    if ((Test-Path $dstImg) -and ((Get-FileHash $img.FullName -Algorithm SHA256).Hash -eq (Get-FileHash $dstImg -Algorithm SHA256).Hash)) {
+        continue
+    }
+    Copy-Item $img.FullName $dstImg -Force
+    [void]$changed.Add("icons/" + $img.Name)
+}
+
 Write-Output ("同步到 " + $Target)
 if ($changed.Count -gt 0) {
     Write-Output ("  未变 " + $same + " 个; 覆盖 " + $changed.Count + " 个: " + ($changed -join ", "))
