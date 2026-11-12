@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>录匣 Offlisten — 离线会议转写</title>
+<title>录匣 Offlisten · 离线会议转写</title>
 <style>
   :root {
     --bg: #23272c;
@@ -14,6 +14,7 @@
     --accent: #f5c542;
   }
   * { box-sizing: border-box; }
+  html { background: var(--bg); }
   body {
     margin: 0;
     background: var(--bg);
@@ -38,9 +39,9 @@
   th { background: var(--panel); font-weight: 600; color: var(--dim); white-space: nowrap; }
   tr:last-child td { border-bottom: 0; }
   td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  td.out { font-size: 13px; color: #d4d9de; }
-  th .thsub { font-weight: 400; font-size: 11px; color: var(--dim); }
-  td .rng { font-size: 11px; color: var(--dim); font-weight: 400; }
+  td.out { font-size: 13px; }
+  th .thsub { font-weight: 400; font-size: 13px; color: var(--dim); }
+  td .rng { font-size: 13px; color: var(--dim); }
   video { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #000; display: block; }
   .videohint {
     border: 1px dashed var(--line); border-radius: 8px; padding: 28px 20px;
@@ -50,11 +51,18 @@
   h3 { font-size: 15px; margin: 26px 0 10px; font-weight: 600; color: var(--dim); }
   blockquote {
     margin: 0 0 14px; padding: 10px 14px; border-left: 2px solid var(--accent);
-    background: var(--panel); color: #c9d1d8; font-size: 14px; line-height: 1.7;
+    background: var(--panel); font-size: 14px; line-height: 1.7;
   }
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--dim); font-size: 13px; }
   ul { padding-left: 20px; margin: 0 0 14px; }
   li { margin-bottom: 6px; }
+  figure { margin: 0 0 10px; background: #fff; border-radius: 8px; padding: 10px; }
+  figure img { display: block; width: 100%; height: auto; }
+  figure a { display: block; border-bottom: 0; }
+  /* 矩阵图是 1000px 宽的信息图，正文栏只有 712px：宽屏时让它出血，字才看得清 */
+  @media (min-width: 960px) {
+    figure { margin-left: -90px; margin-right: -90px; }
+  }
 </style>
 </head>
 <body>
@@ -66,13 +74,13 @@
 </header>
 
 <p class="lead">
-不到一台轻薄本的价钱就能买到的算力，正在替你写会议记录——只要不联网。
+录匣把你电脑上的声音转成文字，全部在本机完成。
 <strong>没有账号，没有云端，拔掉网线它还在写。</strong>
 </p>
 
 <p>
-这个页面不放可交互 demo：转写要在服务端跑 229 MiB 的模型，而这东西的主场在你自己的电脑上。
-下面是同一份模型（SenseVoice int8，2 个 CPU 线程）的真实输出，你可以先看效果，再决定要不要装。
+这个页面不放可交互 demo：转写要在服务端加载 229 MiB 的模型，而它的主场是你自己的电脑。
+下面是同一份模型（SenseVoice int8，2 个 CPU 线程）在五段公开音频上的真实输出，看完再决定要不要装。
 </p>
 
 <h2>五个语种，同一份模型</h2>
@@ -93,15 +101,14 @@
 </div>
 
 <p class="note" style="margin-top:12px">
-点语种名可以直接听那段音频——五段都在
+点语种名可以听那段音频。五段都在
 <a href="https://huggingface.co/ToothpasteLake/offlisten-models/tree/main/test_wavs">模型仓库的 test_wavs/</a>，
-和模型一样可下载。转写耗时是 2 个 CPU 线程的中位数，括号里是五轮的极值。
+和模型一样可下载，可自己复跑。耗时是 2 个 CPU 线程跑五轮的中位数，括号里是极值。
 <br>
-<b>一行精确到三位小数的 RTF 是噪声，不是一个值得炫耀的指标。</b>同一段音频连跑五次能落在 0.077–0.117 之间，
-所以上表只能读出一件事：处理速度大约是实时的十倍。要当真 benchmark 用，得固定机器、关掉后台、多轮取分布。
+同一段音频连跑五次，RTF 能落在 0.077–0.117 之间，所以这张表只支撑一个结论：速度大概是实时的十倍。
+要当 benchmark 用，得固定机器、关掉后台、多跑几轮看分布。
 <br>
-一处如实标注：同一段中文，官方示例作「<b>开放</b>时间」，int8 量化下这里是「<b>开饭</b>时间」——
-我们把它留在表里，而不是挑一条好看的。
+中文那句在官方示例里是「开放时间」，int8 量化后这里是「开饭时间」。我们没有换成好看的那条。
 </p>
 
 <h2>演示</h2>
@@ -110,41 +117,41 @@
 <p class="videohint" id="demo-hint">演示视频加载中；若浏览器不支持 mp4，可直接<a href="./demo.mp4">下载观看</a>。</p>
 
 <p class="note">
-这 42 秒里没有写好的台词：五段音频先被模型听，听完才落字，和产品里一样按停顿切段。
-界面是产品的本地文本页，以纯回放模式启动，所以控制区显示「只读文本页」——正常桌面运行时那里是开始／暂停。
-视频里出现的每个字节都只走过 <code>127.0.0.1</code>。
+这 42 秒是按真实时钟跑出来的：五段音频先被模型听完，字幕才依次出现，切段方式和产品里一样靠停顿。
+界面是产品的本地文本页，以只读回放模式启动，所以控制区写着「只读文本页」；正常桌面运行时那里是开始／暂停。
+视频里的数据只走过 <code>127.0.0.1</code>。
 </p>
 
 <h2>接上本地的 AI</h2>
 
 <p>
-录匣只做一件事：把声音变成文字。总结、追问、翻译交给谁写，由你决定——只要那个「谁」也在这台机器上。
-下面这段 46 秒没有音轨，因为它要证明的是另一件事。
+录匣只把声音变成文字。总结、追问、翻译交给谁写由你决定，前提是那个模型也在这台机器上。
+下面这段 46 秒没有音轨，因为它要证明的不是听感。
 </p>
 
 <video controls preload="metadata" src="./use-with-browser-ai.mp4"></video>
 
 <p class="note" style="margin-top:12px">
 左边是录匣的本地文本页，右边是浏览器里的 Page Assist，接着一个跑在 Ollama 上的 <code>qwen2.5:0.5b</code>。
-勾选 <b>Chat with current page</b> 之后，插件读的是这个页面本身——不是云端接口，也不是把文字复制到别处再粘贴回来。
+勾选 <b>Chat with current page</b> 之后，插件读的是这个页面本身，走的不是云端接口，也不经过复制粘贴。
 </p>
 
-<h3>这不是外挂，是产品里写好的出口</h3>
+<h3>本地文本页本来就留了这个出口</h3>
 
-<p>本地文本页上那行提示，就是为这件事留的：</p>
+<p>页面上那行提示是为这件事写的：</p>
 
 <blockquote>
 文本来自本机离线 ASR，只在 127.0.0.1 上传输。本页不调用任何模型，也不持有 apikey。
 要交给 AI 处理，就复制全文，或让你浏览器里已有的 AI 插件读取本页。
 </blockquote>
 
-<p>视频里三个部件都在同一台机器上，链路中没有一处需要出网：</p>
+<p>视频里三个部件都在同一台机器上，链路没有一处出网：</p>
 
 <div class="tablewrap">
 <table>
   <thead><tr><th>部件</th><th>作用</th><th>跑在哪</th></tr></thead>
   <tbody>
-    <tr><td>SenseVoice int8</td><td>声音 → 带标点文字</td><td class="out">本机进程，229 MiB 随安装包落盘</td></tr>
+    <tr><td>SenseVoice int8</td><td>声音转成带标点的文字</td><td class="out">本机进程，229 MiB 随安装包落盘</td></tr>
     <tr><td>Page Assist</td><td>把当前页内容放进提示词</td><td class="out">浏览器扩展</td></tr>
     <tr><td>Ollama + qwen2.5:0.5b</td><td>读文字，给回答</td><td class="out">本机进程，监听 127.0.0.1:11434</td></tr>
   </tbody>
@@ -152,25 +159,61 @@
 </div>
 
 <p class="note" style="margin-top:12px">
-两句实话：一是 <code>0.5b</code> 只有五亿参数，回答质量按小模型的标准看，别拿它和云端大模型比；
-二是视频里它用英文作答，因为页面上并排摆着中文原文和 Argos 译文，模型看到的是双语文本。
-想让回答更稳，就在插件里限定「只依据中文原文回答」。
+两点说明。一是 <code>0.5b</code> 只有五亿参数，回答质量按小模型的标准看，别拿它和云端大模型比。
+二是视频里它用英文作答，因为页面上并排摆着中文原文和 Argos 译文，模型看到的是双语文本；
+想让回答更稳，可以在插件里限定「只依据中文原文回答」。
 </p>
 
-<h2>它和云端转写的区别</h2>
+<h2>造轮子之前，先看这 12 格</h2>
+
+<p>
+上面演示的是产品选中的那一格。选之前量过 4 个运行时 × 3 个平台，
+能同时满足「CPU 能跑、流式、能装进别人的机器」的只有 2 格，其中 1 格有本机实测。
+</p>
+
+<figure>
+  <a href="./matrix-zh.png" title="点开看原尺寸 1000×780"><img src="./matrix-zh.png" alt="端侧 ASR 运行时可用性矩阵：4 个运行时 × 3 个平台，12 格里只有 2 格通过"></a>
+</figure>
+
+<p class="note">
+颜色越深越可用。斜纹表示这一格不存在：不是慢，是没有这个选项。
+英文版：<a href="./matrix-en.png">matrix-en.png</a>。
+</p>
+
+<p>
+图上只放结论，依据分四级：5 格来自官方文档或包矩阵，1 格是本机实测（就是上面那张表），
+1 格只验过模型、没跑过运行时，5 格是推断。推断的那 5 格标了 L3，只能当"值得试"，不能当结论引用。
+</p>
+
+<h3>依据都能点开核</h3>
+
 <ul>
-  <li><b>不上传</b>：音频不出本机。没有「隐私政策」需要读，因为没有服务器收它。</li>
+  <li><a href="https://arxiv.org/abs/2407.04051">FunAudioLLM 论文（arXiv:2407.04051）</a>：SenseVoice-Small 的结构、5 语言支持与低延迟声明。</li>
+  <li><a href="https://k2-fsa.github.io/sherpa/onnx/">sherpa-onnx 文档</a>：ONNX Runtime 下的 SenseVoice 用法与流式示例，产品走的就是这条。</li>
+  <li><a href="https://k2-fsa.github.io/sherpa/ncnn/sense-voice/">sherpa-ncnn 的 SenseVoice 章</a>：ncnn 侧有现成预训练包，也有麦克风实时识别一节。</li>
+  <li><a href="https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/backend/docs/backend_platform_support_matrix.html">Triton 后端支持矩阵</a>：TensorRT 在 x86 与 ARM-SBSA 上都是 GPU ✓ / CPU ✗。</li>
+  <li><a href="https://pypi.org/project/sherpa-ncnn/#files">PyPI 上 sherpa-ncnn 的 wheel 列表</a>：只有 win32 与 win_amd64，没有 win_arm64。</li>
+  <li><a href="https://huggingface.co/FunAudioLLM/SenseVoiceSmall-GGUF">SenseVoiceSmall-GGUF 模型卡</a>：q8 体积，8 线程 8.01% CER（184 条普通话）。</li>
+</ul>
+
+<p class="note">
+逐格原因、证据分级和「补一格」用的模板在仓库的 <code>docs/bench/README.md</code>。
+这 12 格里我们只有 1 格是自己量的，其余 11 格缺的正是别人手上的数据。
+</p>
+
+<h2>和云端转写比</h2>
+<ul>
+  <li><b>不上传</b>：音频不出本机。没有隐私政策需要读，因为没有服务器收它。</li>
   <li><b>不用登录</b>：没有账号体系，也就没有订阅和额度。</li>
-  <li><b>断网可用</b>：模型随安装包一起落盘，拔掉网线照常写。</li>
-  <li><b>能抓桌面客户端</b>：系统级音频采集，不是只能录浏览器标签页。</li>
+  <li><b>断网可用</b>：模型随安装包落盘，拔掉网线照常写。</li>
+  <li><b>能抓桌面客户端</b>：系统级音频采集，不只限于浏览器标签页。</li>
 </ul>
 
 <h2>模型</h2>
 <p>
 本页数字对应的权重公开在
 <a href="https://huggingface.co/ToothpasteLake/offlisten-models">ToothpasteLake/offlisten-models</a>，
-6 个文件共 229.07 MiB，逐文件 sha256 已登记在发行的清单里。
-换成自己的机器复跑时，先核对哈希，再比数字。
+6 个文件共 229.07 MiB，逐文件 sha256 登记在发行清单里。换成自己的机器复跑时，先核对哈希，再比数字。
 </p>
 
 <!-- 主仓库公开后取消注释：
@@ -191,7 +234,7 @@
     hint.hidden = true;
   });
   v.addEventListener('error', function () {
-    hint.textContent = '演示视频待上传：把 demo.mp4 放进仓库根目录即自动显示。';
+    hint.innerHTML = '演示视频加载失败，可直接<a href="./demo.mp4">下载观看</a>。';
   });
 })();
 </script>
