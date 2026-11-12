@@ -32,8 +32,11 @@ jobs:
 
       - name: 采集
         env:
-          # 用内置 token，不额外存 secret。仓库私有也能跑，权限来自上面的 contents: write。
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 流量接口（/traffic/*）要求 fine-grained token 的 Administration (read)，
+          # Actions 内置 token 无权授予，实测返回 403 "Resource not accessible by integration"。
+          # 所以优先用 secret METRICS_TOKEN；没配就退回内置 token——
+          # 此时仓库计数照常，只有流量那一段标「缺凭证」，不写 0。
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
         run: python tools/metrics.py --write
 
       - name: 提交
@@ -45,13 +48,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/metrics
-          git commit -m "metrics: 快照 $(date -u +%F)"
+          # 用 +8 日期，与 history.csv 里的 date 列同一天；用 UTC 会出现「提交说 11-12、数据是 11-13」
+          git commit -m "metrics: 快照 $(TZ=Asia/Shanghai date +%F)"
           git push
           echo "已提交今日快照" >> "$GITHUB_STEP_SUMMARY"
 
-      # 提交之后再报错：数据该留的已经留下，红叉只用来提醒「今天有源取不到」。
+      # 提交之后再判断：数据该留的已经留下，红叉只用来提醒「今天有源取不到」。
       # 顺序反过来会导致一次网络抖动就让当天的其余指标一起丢。
-      - name: 有源取不到就标红
+      #
+      # 分两类：缺凭证是已知的权限模型限制（配 METRICS_TOKEN 即修复），只报警告；
+      # 其余失败才是真的坏了，让 job 变红。
+      - name: 检查今天有没有源挂掉
         shell: bash
         run: |
           python - <<'PY'
@@ -61,10 +68,13 @@ jobs:
           with open("docs/metrics/history.csv", encoding="utf-8") as f:
               rows = [r for r in csv.DictReader(f)
                       if r["date"] == today and r["metric"] == "_unavailable"]
-          if rows:
-              print("今天有 %d 个数据源取不到：" % len(rows))
-              for r in rows:
-                  print("  %-18s %s" % (r["source"], r["note"]))
-              sys.exit(1)
-          print("全部数据源可用")
+          missing = [r for r in rows if r["note"].startswith("缺凭证")]
+          broken = [r for r in rows if not r["note"].startswith("缺凭证")]
+          for r in missing:
+              print("::warning title=流量数据缺凭证::%s — %s" % (r["source"], r["note"]))
+          for r in broken:
+              print("::error title=采集失败::%s — %s" % (r["source"], r["note"]))
+          if not rows:
+              print("全部数据源可用")
+          sys.exit(1 if broken else 0)
           PY

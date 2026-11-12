@@ -80,6 +80,10 @@ def fetch(url, token=None):
         if e.code == 404 and "github" in url:
             hint = "（私有仓库对匿名请求一律 404）"
         elif e.code == 403 and "traffic" in url:
+            if "Resource not accessible by integration" in detail:
+                # Actions 内置 token 无法授予 Administration 权限，这是权限模型，不是配置漏填
+                hint = "（内置 token 无 Administration 权限；需配 METRICS_TOKEN 个人令牌）"
+                return False, None, "缺凭证: " + detail + hint
             hint = "（流量接口需要 push 权限）"
         return False, None, "HTTP %d%s%s" % (e.code, (": " + detail) if detail else "", hint)
     except urllib.error.URLError as e:
@@ -123,16 +127,19 @@ def unavailable(date, source, err):
 def collect_github(token, date):
     base = "https://api.github.com/repos/" + GH_REPO
     rows = []
+    ok = {}
 
-    ok, d, err = fetch(base, token)
-    if not ok:
-        return unavailable(date, "github", err)
+    good, d, err = fetch(base, token)
+    ok["github"] = good
+    if not good:
+        return unavailable(date, "github", err), ok
     for key, metric in (("stargazers_count", "stars"), ("forks_count", "forks"),
                         ("subscribers_count", "watchers"), ("open_issues_count", "open_issues")):
         rows.append(row(date, "github", metric, d.get(key)))
 
-    ok, rel, err = fetch(base + "/releases?per_page=100", token)
-    if not ok:
+    good, rel, err = fetch(base + "/releases?per_page=100", token)
+    ok["github_release"] = good
+    if not good:
         rows += unavailable(date, "github_release", err)
     else:
         total = 0
@@ -147,8 +154,9 @@ def collect_github(token, date):
 
     # 流量：每轮把整个 14 天窗口回填一遍，漏跑的日期能补上，不依赖「今天必须跑过」
     for kind, key, tag in (("views", "views", "views"), ("clones", "clones", "clones")):
-        ok, t, err = fetch("%s/traffic/%s?per=day" % (base, kind), token)
-        if not ok:
+        good, t, err = fetch("%s/traffic/%s?per=day" % (base, kind), token)
+        ok["github_traffic"] = good
+        if not good:
             rows += unavailable(date, "github_traffic", err)
             continue
         days = t.get(kind, [])
@@ -160,41 +168,46 @@ def collect_github(token, date):
             rows.append(row(d8, "github_traffic", tag + "_uniques", item["uniques"],
                             "回填自 14 天窗口；平台按 UTC 日切"))
         if not days:
+            ok["github_traffic"] = False
             rows += unavailable(date, "github_traffic", "接口返回空窗口")
 
     # 来源与热门路径：同样只有 14 天，且是「这段窗口内的排名」，不是按天增量。
     # 因此只记当天这一行，不做回填——把它当累计值会读错。
     for kind, prefix in (("referrers", "referrer."), ("paths", "path.")):
-        ok, t, err = fetch("%s/traffic/popular/%s" % (base, kind), token)
-        if not ok:
+        good, t, err = fetch("%s/traffic/popular/%s" % (base, kind), token)
+        ok["github_popular"] = ok.get("github_popular", True) and good
+        if not good:
             rows += unavailable(date, "github_popular", err)
             continue
         for item in t:
             name = item.get("referrer") or item.get("path") or "?"
             rows.append(row(date, "github_popular", prefix + name, item.get("count"),
                             "14 天窗口内排名，非日增量"))
-    return rows
+    return rows, ok
 
 
 def collect_hf(date):
     rows = []
-    ok, d, err = fetch("https://huggingface.co/api/models/%s?expand%%5B%%5D=downloads&expand%%5B%%5D=downloadsAllTime&expand%%5B%%5D=likes" % HF_MODEL)
-    if not ok:
+    ok = {}
+    good, d, err = fetch("https://huggingface.co/api/models/%s?expand%%5B%%5D=downloads&expand%%5B%%5D=downloadsAllTime&expand%%5B%%5D=likes" % HF_MODEL)
+    ok["hf_model"] = good
+    if not good:
         rows += unavailable(date, "hf_model", err)
     else:
         rows.append(row(date, "hf_model", "downloads_30d", d.get("downloads"), "平台口径：近 30 天"))
         rows.append(row(date, "hf_model", "downloads_all_time", d.get("downloadsAllTime")))
         rows.append(row(date, "hf_model", "likes", d.get("likes")))
 
-    ok, s, err = fetch("https://huggingface.co/api/spaces/" + HF_SPACE)
-    if not ok:
+    good, s, err = fetch("https://huggingface.co/api/spaces/" + HF_SPACE)
+    ok["hf_space"] = good
+    if not good:
         rows += unavailable(date, "hf_space", err)
     else:
         rows.append(row(date, "hf_space", "likes", s.get("likes")))
         # 浏览量：平台没有这个接口，不是我们没写上
         rows.append(row(date, "hf_space", "views", None,
                         "static Space 不提供浏览量；/api/spaces/<id>/analytics 返回 404"))
-    return rows
+    return rows, ok
 
 
 # ---------------------------------------------------------------- store
@@ -206,8 +219,16 @@ def read_history(path):
         return list(csv.DictReader(f))
 
 
-def merge(old, new):
-    """同 (date, source, metric) 覆盖，其余保留。表只增不减，断更的日期不会被抹掉。"""
+def merge(old, new, ok_sources=None, date=None):
+    """同 (date, source, metric) 覆盖，其余保留。表只增不减，断更的日期不会被抹掉。
+
+    难处理的是「标记」和「数据」打架。同一个源一天里可能一次成功一次失败
+    （本机有 PAT、CI 只有内置 token），两次结果会落在同一个 (date, source) 下。
+    规则两条：
+      1. 有数据就不留标记——取到了总比「当时没取到」更接近事实。
+      2. 本次运行该源成功，就删掉今天留下的旧标记——否则本机补跑成功了，
+         表里还挂着上一次 CI 的 403，读者会以为现在也取不到。
+    """
     key = lambda r: (r["date"], r["source"], r["metric"])  # noqa: E731
     merged = {key(r): r for r in old}
     changed = 0
@@ -216,6 +237,17 @@ def merge(old, new):
         if merged.get(k) != r:
             changed += 1
         merged[k] = r
+
+    ok_sources = ok_sources or {}
+    have = {}
+    for d, s, m in merged:
+        if m != "_unavailable":
+            have.setdefault((d, s), True)
+    for k in [k for k in list(merged) if k[2] == "_unavailable"]:
+        d, s, _ = k
+        if (d, s) in have or (ok_sources.get(s) and d == date):
+            del merged[k]
+
     return [merged[k] for k in sorted(merged)], changed
 
 
@@ -311,7 +343,10 @@ def main():
 
     token = args.github_token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or git_credential_token()
 
-    rows = collect_github(token, args.date) + collect_hf(args.date)
+    rows, ok = collect_github(token, args.date)
+    hf_rows, hf_ok = collect_hf(args.date)
+    rows += hf_rows
+    ok.update(hf_ok)
 
     bad = [r for r in rows if r["metric"] == "_unavailable"]
     if args.github_token:
@@ -349,7 +384,7 @@ def main():
         return 1 if (args.strict and bad) else 0
 
     old = read_history(HISTORY)
-    merged, changed = merge(old, rows)
+    merged, changed = merge(old, rows, ok, args.date)
     write_history(HISTORY, merged)
     write_badges(OUT_DIR, merged, args.date)
     print("\n已写入 docs/metrics/history.csv：共 %d 行，本次新增/更新 %d 行" % (len(merged), changed))
