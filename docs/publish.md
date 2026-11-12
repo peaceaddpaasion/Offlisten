@@ -4,7 +4,7 @@
 
 | 项 | 状态 |
 |---|---|
-| 本地 git 仓库 | ✅ `main`，8 次提交，工作树干净 |
+| 本地 git 仓库 | ✅ `main`，提交历史完整（`git log --oneline`），工作树干净 |
 | 可对外读的 README | ✅ 已重写（不再出现 `whisper-ext` 旧名） |
 | LICENSE | ✅ MIT |
 | 版本 tag | ✅ `v0.2.1` |
