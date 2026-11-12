@@ -4,6 +4,8 @@ dist/
 
 # 引擎运行期目录（模型 229 MB 起，绝不入库）
 engine/pc_models/
+# 会议存档写在程序目录旁，属本机运行产物
+engine/meetings/
 
 # Python
 .venv/
