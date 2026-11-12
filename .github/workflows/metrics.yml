@@ -1,0 +1,70 @@
+name: Metrics
+
+# 平台只给当前值，不给历史：流量接口 14 天就删，release 下载数只有累计值没有按天。
+# 所以每天抄一次，抄进仓库，变成可以 diff 的字节。这本账的价值随时间增加，
+# 停更一天就永远缺一天——这正是它必须自动化、而不是想起来才手动跑的原因。
+
+on:
+  schedule:
+    # 03:17 UTC = 11:17 UTC+8。避开整点：GitHub 的定时任务在整点前后最拥堵，排队会漂。
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  # 写：既要提交 history.csv，也因为 traffic/* 接口要求 push 权限。
+  # 只读的 token 打这个接口是 403，不是空数据。
+  contents: write
+
+concurrency:
+  group: metrics
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    name: 抄一份快照
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: 采集
+        env:
+          # 用内置 token，不额外存 secret。仓库私有也能跑，权限来自上面的 contents: write。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/metrics.py --write
+
+      - name: 提交
+        run: |
+          if git diff --quiet -- docs/metrics; then
+            echo "没有变化，不提交" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/metrics
+          git commit -m "metrics: 快照 $(date -u +%F)"
+          git push
+          echo "已提交今日快照" >> "$GITHUB_STEP_SUMMARY"
+
+      # 提交之后再报错：数据该留的已经留下，红叉只用来提醒「今天有源取不到」。
+      # 顺序反过来会导致一次网络抖动就让当天的其余指标一起丢。
+      - name: 有源取不到就标红
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv, datetime as dt, sys
+          tz = dt.timezone(dt.timedelta(hours=8))
+          today = dt.datetime.now(tz).date().isoformat()
+          with open("docs/metrics/history.csv", encoding="utf-8") as f:
+              rows = [r for r in csv.DictReader(f)
+                      if r["date"] == today and r["metric"] == "_unavailable"]
+          if rows:
+              print("今天有 %d 个数据源取不到：" % len(rows))
+              for r in rows:
+                  print("  %-18s %s" % (r["source"], r["note"]))
+              sys.exit(1)
+          print("全部数据源可用")
+          PY
