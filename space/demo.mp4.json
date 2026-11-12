@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-11-12T23:15:38",
+  "model": "SenseVoice int8, use_itn=True, threads=2",
+  "video": "demo.mp4",
+  "video_bytes": 801685,
+  "video_seconds": 41.85,
+  "frames": 189,
+  "rows": [
+    {
+      "lang": "zh",
+      "label": "中",
+      "wav": "zh.wav",
+      "duration": 5.59,
+      "elapsed": 0.45,
+      "rtf": 0.081,
+      "rtf_min": 0.081,
+      "rtf_max": 0.081,
+      "rounds": 1,
+      "text": "开饭时间早上9点至下午5点。",
+      "sha256": "b77f1794fe374a0ba1ee1dc458bfaf9349496cbbfc32780c50ba3c5a7ad8e373"
+    },
+    {
+      "lang": "en",
+      "label": "英",
+      "wav": "en.wav",
+      "duration": 7.15,
+      "elapsed": 0.805,
+      "rtf": 0.113,
+      "rtf_min": 0.113,
+      "rtf_max": 0.113,
+      "rounds": 1,
+      "text": "The tribal chieftain called for the boy and presented him with 50 pieces of code.",
+      "sha256": "eb1eb008904465b74c304aad8342e8c7d3c6e61ffe9f66adcaca9cf0f76a93f4"
+    },
+    {
+      "lang": "ja",
+      "label": "日",
+      "wav": "ja.wav",
+      "duration": 7.2,
+      "elapsed": 0.623,
+      "rtf": 0.087,
+      "rtf_min": 0.087,
+      "rtf_max": 0.087,
+      "rounds": 1,
+      "text": "うちの中学は弁当制で持っていきない場合は、50円の学校販売のパンを買う。",
+      "sha256": "460bd8dccb0d2a5f4e29c628f837be4082d13defc64c3fc21dd1b6bb0e119095"
+    },
+    {
+      "lang": "ko",
+      "label": "韩",
+      "wav": "ko.wav",
+      "duration": 4.61,
+      "elapsed": 0.352,
+      "rtf": 0.076,
+      "rtf_min": 0.076,
+      "rtf_max": 0.076,
+      "rounds": 1,
+      "text": "조금만 생각을 하면서 살면 훨씬 편할 거야.",
+      "sha256": "0dc797a5c81ed30fc339d91f3da718ab02854e17ffa37cb93c4c039ac5c6bb9c"
+    },
+    {
+      "lang": "yue",
+      "label": "粤",
+      "wav": "yue.wav",
+      "duration": 5.15,
+      "elapsed": 0.402,
+      "rtf": 0.078,
+      "rtf_min": 0.078,
+      "rtf_max": 0.078,
+      "rounds": 1,
+      "text": "呢几个字都表达唔到我想讲嘅意思。",
+      "sha256": "0960b2db54ae202071d250e6462fbf74a3c863f0e3e7f01273e4939c996875a0"
+    }
+  ]
+}

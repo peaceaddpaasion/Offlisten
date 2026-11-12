@@ -39,6 +39,8 @@
   tr:last-child td { border-bottom: 0; }
   td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
   td.out { font-size: 13px; color: #d4d9de; }
+  th .thsub { font-weight: 400; font-size: 11px; color: var(--dim); }
+  td .rng { font-size: 11px; color: var(--dim); font-weight: 400; }
   video { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #000; display: block; }
   .videohint {
     border: 1px dashed var(--line); border-radius: 8px; padding: 28px 20px;
@@ -73,20 +75,25 @@
 <div class="tablewrap">
 <table>
   <thead>
-    <tr><th>音频</th><th>时长</th><th>耗时</th><th>RTF</th><th>输出</th></tr>
+    <tr><th>音频</th><th>时长</th><th>耗时</th><th>RTF<br><span class="thsub">5 轮中位数</span></th><th>输出</th></tr>
   </thead>
   <tbody>
-    <tr><td>中</td><td class="num">5.6 s</td><td class="num">0.45 s</td><td class="num">0.080</td><td class="out">开饭时间早上9点至下午5点。</td></tr>
-    <tr><td>英</td><td class="num">7.2 s</td><td class="num">0.81 s</td><td class="num">0.114</td><td class="out">The tribal chieftain called for the boy and presented him with 50 pieces of code.</td></tr>
-    <tr><td>日</td><td class="num">7.2 s</td><td class="num">0.61 s</td><td class="num">0.085</td><td class="out">うちの中学は弁当制で持っていきない場合は50円の学校販売のパンを買う。</td></tr>
-    <tr><td>韩</td><td class="num">4.6 s</td><td class="num">0.39 s</td><td class="num">0.084</td><td class="out">조금만 생각을 하면서 살면 훨씬 편할 거야.</td></tr>
-    <tr><td>粤</td><td class="num">5.1 s</td><td class="num">0.45 s</td><td class="num">0.088</td><td class="out">呢几个字都表达唔到我想讲嘅意思。</td></tr>
+    <tr><td><a href="https://huggingface.co/ToothpasteLake/offlisten-models/resolve/main/test_wavs/zh.wav">中</a></td><td class="num">5.6 s</td><td class="num">0.56 s</td><td class="num">0.100<br><span class="rng">0.087–0.117</span></td><td class="out">开饭时间早上9点至下午5点。</td></tr>
+    <tr><td><a href="https://huggingface.co/ToothpasteLake/offlisten-models/resolve/main/test_wavs/en.wav">英</a></td><td class="num">7.2 s</td><td class="num">0.59 s</td><td class="num">0.083<br><span class="rng">0.077–0.090</span></td><td class="out">The tribal chieftain called for the boy and presented him with 50 pieces of code.</td></tr>
+    <tr><td><a href="https://huggingface.co/ToothpasteLake/offlisten-models/resolve/main/test_wavs/ja.wav">日</a></td><td class="num">7.2 s</td><td class="num">0.65 s</td><td class="num">0.090<br><span class="rng">0.080–0.108</span></td><td class="out">うちの中学は弁当制で持っていきない場合は、50円の学校販売のパンを買う。</td></tr>
+    <tr><td><a href="https://huggingface.co/ToothpasteLake/offlisten-models/resolve/main/test_wavs/ko.wav">韩</a></td><td class="num">4.6 s</td><td class="num">0.38 s</td><td class="num">0.082<br><span class="rng">0.080–0.087</span></td><td class="out">조금만 생각을 하면서 살면 훨씬 편할 거야.</td></tr>
+    <tr><td><a href="https://huggingface.co/ToothpasteLake/offlisten-models/resolve/main/test_wavs/yue.wav">粤</a></td><td class="num">5.1 s</td><td class="num">0.42 s</td><td class="num">0.081<br><span class="rng">0.078–0.099</span></td><td class="out">呢几个字都表达唔到我想讲嘅意思。</td></tr>
   </tbody>
 </table>
 </div>
 
 <p class="note" style="margin-top:12px">
-RTF = 转写耗时 ÷ 音频时长，小于 1 表示比实时快。上表是 Windows 本机 2 线程的成绩，换机器会有出入。
+点语种名可以直接听那段音频——五段都在
+<a href="https://huggingface.co/ToothpasteLake/offlisten-models/tree/main/test_wavs">模型仓库的 test_wavs/</a>，
+和模型一样可下载。转写耗时是 2 个 CPU 线程的中位数，括号里是五轮的极值。
+<br>
+<b>一行精确到三位小数的 RTF 是噪声，不是一个值得炫耀的指标。</b>同一段音频连跑五次能落在 0.077–0.117 之间，
+所以上表只能读出一件事：处理速度大约是实时的十倍。要当真 benchmark 用，得固定机器、关掉后台、多轮取分布。
 <br>
 一处如实标注：同一段中文，官方示例作「<b>开放</b>时间」，int8 量化下这里是「<b>开饭</b>时间」——
 我们把它留在表里，而不是挑一条好看的。
@@ -95,7 +102,13 @@ RTF = 转写耗时 ÷ 音频时长，小于 1 表示比实时快。上表是 Win
 <h2>演示</h2>
 
 <video id="demo" controls preload="metadata" src="./demo.mp4" hidden></video>
-<p class="videohint" id="demo-hint">演示视频待上传。</p>
+<p class="videohint" id="demo-hint">演示视频加载中；若浏览器不支持 mp4，可直接<a href="./demo.mp4">下载观看</a>。</p>
+
+<p class="note">
+这 42 秒里没有写好的台词：五段音频先被模型听，听完才落字，和产品里一样按停顿切段。
+界面是产品的本地文本页，以纯回放模式启动，所以控制区显示「只读文本页」——正常桌面运行时那里是开始／暂停。
+视频里出现的每个字节都只走过 <code>127.0.0.1</code>。
+</p>
 
 <h2>它和云端转写的区别</h2>
 <ul>
