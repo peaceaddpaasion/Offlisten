@@ -104,6 +104,7 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |
 | `docs/adr-001-runtime.md` | ADR：ncnn 与 ONNX 曾并存，主线定为 ONNX（含取舍依据） |
 | `docs/research-plan.md` | 长期展望：端侧 ASR 运行时可用性地图（四格式 × 资源 × 模型） |
+| `docs/bench/README.md` | **可用性矩阵成品**：12 格逐格原因 + 决策树 + PR 模板（图见 `matrix.svg/png/pdf`） |
 | `docs/publish.md` | 发布占位清单（GitHub + Release + 命名判定） |
 | `brand/README.md` | 图标设计过程（四候选、逐尺寸光栅化对比） |
 

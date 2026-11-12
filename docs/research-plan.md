@@ -17,7 +17,7 @@
 | 维度 | 取值 | 备注 |
 |---|---|---|
 | **格式 / 运行时** | ONNX (sherpa-onnx) · ncnn (sherpa-ncnn) · GGUF (llama.cpp / FunASR-llamacpp) · TensorRT | 四者不是同层：前三是"能装能跑"，TRT 是"要编译成 engine" |
-| **资源约束** | 线程数 {1,2,4,8} × 平台 {x86-CPU, x86-GPU, arm64} × 功耗代理 | 功耗见 §6 |
+| **平台** | x86-64 CPU · x86 + NVIDIA GPU · Windows arm64 | **二维：格式 × 平台**。线程数作为格内数据，不单独成轴 |
 | **模型** | SenseVoice · zipformer(zh-14M / en-70M) · Whisper(tiny~small) · Parakeet | 只有锚点模型能贯穿多格式 |
 
 ## 3. 关键方法问题：必须用「同模型」做锚点
@@ -87,19 +87,20 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 
 **其余格子明确写"不测及原因"**——不测也要进表，这正是"失败信息流通"的意义。
 
-## 6. 功耗：只能给代理指标，必须写明
+## 6. 功耗：**砍掉**（并说明为什么砍）
 
-Windows 上读不到 RAPL，物理功耗需要外接功率计。可行的三种代理，按可信度排序：
+原计划把功耗作第三维，实测条件不允许，已从图中移除：
 
-1. **HWiNFO / LibreHardwareMonitor 的 CPU Package Power**（需管理员权限，传感器支持因主板而异）；
-2. **笔记本电池放电速率**（`powercfg /batteryreport`，只对整机有效，噪声大）；
-3. **CPU 时间 × 占用**（最弱，但一定能拿到）。
+- Windows 读不到 RAPL，物理功耗需要**外接功率计**；
+- 代理指标（HWiNFO package power / `powercfg` 电池放电 / CPU 时间×占用）**跨机型不可比**，噪声大到无法支撑一张图；
+- 更关键的是：**放进去会让人以为我们测过**。这比缺一维更糟。
 
-**论文/报告里必须写清"功耗为代理指标，非功率计实测"**，否则就是overclaim——这个领域最常见的造假点。
+→ 决议：**二维（格式 × 平台），颜色深浅表示可用度**。功耗若要补，等有功率计再单独做一页，并注明测量条件。
+**不写"功耗更低"这种没有测量支撑的结论。**
 
 ## 7. 产出形态
 
-1. **主图**：三维矩阵热图，横轴平台×线程，纵轴格式，格内为 RTF；**空格用斜纹表示"不可行"并附编号注脚**（注脚指向 §4 的官方依据）。
+1. **主图**：**二维矩阵**（格式 × 平台），格内写结论词，**颜色深浅 = 可用度**，不存在的格子用斜纹 + 编号注脚指向官方依据。已产出：`docs/bench/matrix.svg` / `.png` / `.pdf`。
 2. **副图**：同模型（SenseVoice）三格式的 RTF-线程曲线 —— 证明"线程不是越多越好"（14M 模型在 N100 上多线程是负优化的已有实证）。
 3. **数据表 + 复现脚本**：每条数据附音频片段 hash、模型文件 hash、命令行。
 4. **一页 README**：结论先行，给"我要做 X 场景，该选哪个格式"的决策树。
@@ -121,3 +122,33 @@ Windows 上读不到 RAPL，物理功耗需要外接功率计。可行的三种�
 
 **不是买显卡，是把 SenseVoice 在 gguf 上跑通并与现有 onnx 基线对齐同一段音频。**
 两条数据（RTF、CER）出来，这张表就已经有了骨架——其余全是往里填。
+
+## 11. 社区形态：为什么适合 X + Hugging Face
+
+这两个平台要的东西不一样，图要用两次，但文案不能一样。
+
+**X（传播，靠一张图）**
+- 发 `docs/bench/matrix.png`，配 **2 句**结论，不放长文。
+- 英文帖模板（X 是国际场）：
+  > 4 runtimes × 3 platforms = 12 combos. Only **one** can ship to an unknown Windows machine.
+  > TensorRT doesn't run on CPU (NVIDIA's own FAQ). sherpa-ncnn has no win_arm64 wheel.
+  > GGUF ASR is non-streaming. Full matrix + sources 👇
+- 图里已有编号注脚，正文只挂链接，不在帖里堆依据——**图和论证分离**是 X 的正确用法。
+
+**Hugging Face（被引用，靠可检索的文档）**
+- HF 的用户是"正在找模型/找方案的人"，入口应该是问题，不是产品：
+  **"我要选一个能装到用户机器上的运行时"** → 这张图。
+- 建议**单独建一个 Space / repo**（例如 `edge-asr-matrix`），只放这张图 + 决策树 + 数据表，
+  **不要塞进产品仓库的 docs 里**。理由很实际：引用者不想为了看一张表去 star 一个产品仓库。
+- 数据能逐格提交 PR 之后，它才会真的活着——单方面维护的表，半年就过期。
+
+**一句话原则**：图是公共品，产品是自己的。把图放在能被独立引用的地方。
+
+## 12. 已产出
+
+| 文件 | 用途 |
+|---|---|
+| `docs/bench/matrix.svg` | 图源，可编辑（改一格不用重画） |
+| `docs/bench/matrix.png` | 社交平台发布用（1000×780） |
+| `docs/bench/matrix.pdf` | 打印 / 引用 |
+| `docs/bench/README.md` | 逐格原因、不测清单、贡献模板、决策树 |
