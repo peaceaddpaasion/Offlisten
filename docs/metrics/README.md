@@ -74,7 +74,11 @@ GitHub 凭证依次取 `--github-token` → `$GH_TOKEN` / `$GITHUB_TOKEN` → `g
 4. 复制出来，仓库 → Settings → Secrets and variables → Actions → New secret，名字 `METRICS_TOKEN`
 
 工作流里是 `secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN`，没配也能跑：仓库计数、Release 下载数、
-HF 数字照常；只有流量那一段写成 `缺凭证`，并在 job 里发一条 warning，不写 0，也不会把整次运行判死。
+HF 数字照常；流量那一段不落盘、不写 0，只在运行日志里发四条 `warning`（views / clones / referrers / paths），
+job 仍然是绿的。
+
+> 缺凭证刻意不写进 `history.csv`：那是配置状态，不是数据事件。写进去会变成「每天一行 403」，
+> 把真正取到的数淹掉；而数据缺口本身已经表现为那段没有行。
 
 > 用 classic PAT 的话给 `repo` scope 也行（公开仓 `public_repo`）。
 > 本机不需要这个 secret：`git credential fill` 拿到的就是你自己账号的令牌，够用。
