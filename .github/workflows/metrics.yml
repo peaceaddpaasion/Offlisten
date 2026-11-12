@@ -39,15 +39,20 @@ jobs:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
         run: python tools/metrics.py --write
 
+      # 表由 CSV 生成，不手写。放在采集之后、提交之前，
+      # 这样一次提交里同时有数字和由它派生的表，两者不可能不同步。
+      - name: 重写 README 里的计数表
+        run: python tools/metrics.py --write-readme
+
       - name: 提交
         run: |
-          if git diff --quiet -- docs/metrics; then
+          if git diff --quiet -- docs/metrics README.md README.en.md; then
             echo "没有变化，不提交" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/metrics
+          git add docs/metrics README.md README.en.md
           # 用 +8 日期，与 history.csv 里的 date 列同一天；用 UTC 会出现「提交说 11-12、数据是 11-13」
           git commit -m "metrics: 快照 $(TZ=Asia/Shanghai date +%F)"
           git push
