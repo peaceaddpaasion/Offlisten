@@ -5,42 +5,22 @@
 | 项 | 状态 |
 |---|---|
 | 本地 git 仓库 | ✅ `main`，提交历史完整（`git log --oneline`），工作树干净 |
-| 可对外读的 README | ✅ 已重写（不再出现 `whisper-ext` 旧名） |
-| LICENSE | ✅ MIT |
+| 可对外读的 README | ✅ 中文 + 英文两份，互相有语言切换 |
+| LICENSE | ✅ MIT，持有人写实名 |
 | 版本 tag | ✅ `v0.2.1` |
-| **远端仓库（公开占位）** | ❌ **没做**：本机 `gh` 未安装，仓库无 remote，无凭据 |
+| 远端仓库 | ✅ 已推送（`main` + `v0.2.1`），**但仍是私有** |
+| CI | ✅ `.github/workflows/ci.yml`，三个 job |
+| 贡献入口 | ✅ `CONTRIBUTING.md` + issue 表单 + PR 模板 |
 
-公开占位是唯一还缺的一步，而且**必须你本人操作**（涉及你的 GitHub 账号）。
+**唯一的阻塞是仓库可见性**：现在只有你登录时能看到，别人点开是 404。
 
-## 1. 公开占位的两条路
+## 1. 切成公开（剩下的唯一一步）
 
-### 路线 A：gh CLI（一条命令，推荐）
+仓库页 → Settings → General → 拉到最底 **Danger Zone** → Change visibility → Public。
 
-```powershell
-winget install --id GitHub.cli -e
-gh auth login                       # 选 GitHub.com → HTTPS → 浏览器授权
-cd D:\projects\whisper-ext
-gh repo create offlisten --public --source=. --remote=origin --push `
-  --description "100% offline meeting transcription. No account, no cloud. 12.5 KB MV3 extension + local ASR engine."
-```
+切之前想清楚：公开后会被搜索引擎与各类镜像站抓取，撤回删不干净。你要的是传播和留痕，这一步是必经的。
 
-### 路线 B：网页建仓再推（不想装 gh）
-
-1. 打开 `github.com/new`，仓库名 `offlisten`，Public，**不要**勾选 README/.gitignore/License（本地已有）。
-2. 进到仓库根目录，再执行：
-
-```bash
-git remote add origin https://github.com/<你的用户名>/offlisten.git
-git push -u origin main --tags
-```
-
-进仓库根目录的三种写法（`cd /d/projects/...` 只在 Git Bash 里成立，cmd 里 `/d` 是切盘符的开关，会直接报「系统找不到指定的路径」）：
-
-| Shell | 命令 |
-|---|---|
-| cmd | `pushd D:\projects\whisper-ext` |
-| PowerShell | `Set-Location D:\projects\whisper-ext` |
-| Git Bash | `cd /d/projects/whisper-ext` |
+本机未装 `gh`，所以只能用网页。切完之后 `api.github.com/repos/peaceaddpaasion/Offlisten` 会从 404 变成 200，可用这条来验证，不必靠肉眼。
 
 ## 2. 建完立刻做的四件事（占位的实际价值在这里）
 
@@ -101,8 +81,36 @@ git push -u origin main --tags
 **必须做的只有三件**：公开仓库、可下载 Release、README 首屏能读懂。
 因为你的产出物不是产品，是**"这个人能独立把离线 ASR 全链路做出来"的证据**。
 
-## 7. 未验证
+## 7. 作为扩散项目的基础
 
-- `gh repo create` 的参数在本机 gh 版本上的具体行为（**gh 尚未安装**，未实测）。
-- GitHub 上 `offlisten` 这个仓库名/用户名是否已被占用（RDAP 只查域名，不查 GitHub）。
+想让别人能拿去改，光有代码不够——得让"改"这件事的启动成本足够低。已经就位的四件：
+
+| 件 | 位置 | 作用 |
+|---|---|---|
+| 模型获取方式 | `CONTRIBUTING.md` | 三个文件的下载地址 + 归档字节数。**这是最大的门槛**：229 MiB 模型不在库里，没有这一节，别人 clone 下来跑不起来 |
+| 契约 | `docs/contract.md` | 换实现不用读代码，只读四个端点 |
+| 零构建扩展 | `extension/` | 8 个文件，load unpacked 即可；没有 npm install，改一个按钮不用装 Node |
+| CI | `.github/workflows/ci.yml` | 文档引用、语法、打包三项，fork 后开箱能跑 |
+
+### 要不要设成模板仓库
+
+Settings → Template repository 勾上，别人能「Use this template」，得到一份**干净历史**的副本（不是 fork 关系，不带你的提交记录）。
+
+判断：**现在不收**。模板适合「拿来起新项目」，而这个仓库的框架（契约 + 论文式测绘 + 负结果册）是为这个特定产品长出来的，别人拿去做别的产品，先得删一半。等真有人问"能不能拿来当底子"再开，比现在开了没人用更实在。
+
+### CI 的成本口径（影响要不要公开）
+
+| 仓库可见性 | Actions 额度 |
+|---|---|
+| 公开 | 标准 runner **免费且不限量** |
+| 私有 | 2,000 分钟/月（Free 计划），之后按分钟计费 |
+
+Windows runner 按 **2 倍** 计费（$0.010/min，Linux 是 $0.006）。所以打包 job 固定在 `windows-latest` 只跑一次，不铺 matrix——不是为了省这几分钟，是为了不让后面的人一句"改个 matrix 试试"把额度吃光。
+
+CI 的诚实边界写在 `CONTRIBUTING.md` 里：**引擎跑不起来**。runner 上没有 229 MiB 模型，也没有 WASAPI 与交互式 Windows 会话。所以引擎改动的证据只能是本机输出，PR 模板里专门留了一栏"实测记录"。
+
+## 8. 未验证
+
+- 仓库切成 Public 之后的实际索引速度与搜索可见性。
 - 商店审核对 `clipboardWrite` + `storage` 的具体要求。
+- CI 在真实 runner 上的首次运行（工作流已通过 YAML 与本地等价命令校验，但没有在 GitHub 上跑过）。
