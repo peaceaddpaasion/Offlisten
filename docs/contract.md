@@ -117,6 +117,10 @@
 - **不用 Native Messaging**（当前版本）：虽然能让扩展一键拉起 Python 进程，但
   `allowed_origins` 要绑定固定扩展 ID、需要独立 installer 写注册表、商店禁止包内捆绑原生可执行文件，
   且 Chrome 在 port 断开时会杀掉 host 进程。结论是双通道并存而非替换，详见主项目 issues.csv 的 I-070。
+- **不绑定扩展 ID**：后端 CORS 对任意 `chrome-extension://` / `moz-extension://` origin 回显，
+  不维护白名单，所以扩展换路径、换 ID 都不会断。代价是任意扩展都能发请求，靠 token 兜底。
+  一旦引入 Native Messaging，这条就不成立了（`allowed_origins` 必须写死 ID），
+  实测 unpacked 的 ID 随路径变化：`whisper/extension` → `ajgmcdhh…`，`whisper-ext` → `hbfbckcfmnnakaekleoadicgnghofcij`。
 
 ## 变更记录
 

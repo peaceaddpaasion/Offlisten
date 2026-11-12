@@ -41,6 +41,10 @@ Whisper 本地转写的浏览器扩展。**只做两件事：读本机转写、�
 - **不能独立运行**。没起 Python 后端时它只是一个连不上的弹窗。
 - **不能跑引擎**。MV3 service worker 不是常驻进程，没有 `child_process`。
 - **没走 Native Messaging**。`nativeMessaging` 权限未申请，`connectNative` 未使用（见 docs/contract.md 末尾）。
+- **扩展 ID 随加载路径变化**。实测同一份代码：从 `whisper/extension` 加载得到 `ajgmcdhh…`，
+  从本仓库加载得到 `hbfbckcfmnnakaekleoadicgnghofcij`。unpacked 的 ID 由路径派生，
+  只有商店安装或 manifest 加 `key` 才固定。**Native Messaging 的 `allowed_origins` 必须写死 ID，
+  所以要做 NM，得先定 ID 策略。**
 
 ## 脚本
 
