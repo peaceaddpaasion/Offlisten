@@ -27,13 +27,20 @@ gh repo create offlisten --public --source=. --remote=origin --push `
 ### 路线 B：网页建仓再推（不想装 gh）
 
 1. 打开 `github.com/new`，仓库名 `offlisten`，Public，**不要**勾选 README/.gitignore/License（本地已有）。
-2. 然后：
+2. 进到仓库根目录，再执行：
 
 ```bash
-cd /d/projects/whisper-ext
 git remote add origin https://github.com/<你的用户名>/offlisten.git
 git push -u origin main --tags
 ```
+
+进仓库根目录的三种写法（`cd /d/projects/...` 只在 Git Bash 里成立，cmd 里 `/d` 是切盘符的开关，会直接报「系统找不到指定的路径」）：
+
+| Shell | 命令 |
+|---|---|
+| cmd | `pushd D:\projects\whisper-ext` |
+| PowerShell | `Set-Location D:\projects\whisper-ext` |
+| Git Bash | `cd /d/projects/whisper-ext` |
 
 ## 2. 建完立刻做的四件事（占位的实际价值在这里）
 

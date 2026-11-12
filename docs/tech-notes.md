@@ -119,21 +119,37 @@ git ls-remote https://github.com/peaceaddpaasion/Offlisten
 fatal: ... CONNECT tunnel failed, response 502
 ```
 
-所以**既无法核实该仓库是否存在/是否为空，也无法推送**。本地状态是可信的：`main` 分支、tag `v0.2.1`、工作树干净。
+连接是间歇性的：有一次 `git ls-remote` 成功，读到 `refs/heads/main = 83bb1997f1a6…`；之后全部 502。
+该提交**不在本地历史里**（本地根提交是另一条线），所以首次 push 很可能被判 non-fast-forward。
+GitHub API 对 `peaceaddpaasion/Offlisten` 返回 404——仓库未公开或尚不存在，两者都会是这个响应。
 
-推送需要在**非沙箱环境**执行：
+本地状态是可信的：`main` 分支、tag `v0.2.1`、工作树干净、打包后 1.05 MiB（最大单文件 202 KB，无体积风险）。
+
+推送需要在**非沙箱环境**执行。先探测远端，再按结果选动作：
 
 ```bash
-cd /d/projects/whisper-ext
-git remote add origin https://github.com/peaceaddpaasion/Offlisten.git
-git push -u origin main --tags
+git ls-remote origin
 ```
 
-若远端已有 README，先 `git pull --rebase origin main` 再推。
+| 输出 | 含义 | 下一步 |
+|---|---|---|
+| 报错 `Repository not found` | 仓库没有、或账号不对 | 去网页建仓，或确认用户名拼写 |
+| 无输出 | 仓库存在但为空 | `git push -u origin main --tags` |
+| 有 `refs/heads/main` | 远端已有提交 | `git fetch origin main` 后看 `git log --oneline -1 FETCH_HEAD` |
+
+远端若只是网页初始化时生成的单个 README，`git push --force-with-lease origin main` 是安全的选择（覆盖掉的就是一行自动生成的标题）；若里面有别的提交，别强推，先对齐。
+
+进仓库根目录的写法随 shell 变，别混用：
+
+| Shell | 命令 |
+|---|---|
+| cmd | `pushd D:\projects\whisper-ext` |
+| PowerShell | `Set-Location D:\projects\whisper-ext` |
+| Git Bash | `cd /d/projects/whisper-ext` |
 
 ## 6. 未验证清单
 
-- `github.com` 上 `peaceaddpaasion/Offlisten` 是否存在、是否已有提交（网络被拦）。
+- 远端 `refs/heads/main = 83bb1997f1a6…` 的内容是什么（只读到 sha，没读到内容）。
 - MSIX 的 VFS 重定向与只读行为（按机制推断，未打包实测）。
 - `sherpa-ncnn` 在本机 Python 3.13 x64 上实际可跑、以及 SenseVoice→ncnn 的质量差。
 - Microsoft Store 当前对个人开发者的具体条款（政策变动频繁，提交前需看 Partner Center）。
