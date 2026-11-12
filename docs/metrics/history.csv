@@ -59,7 +59,9 @@ date,source,metric,value,note
 2026-11-13,github,open_issues,0,
 2026-11-13,github,stars,0,
 2026-11-13,github,watchers,0,
+2026-11-13,github_popular,_unavailable,,HTTP 403: Resource not accessible by integration（流量接口需要 push 权限）
 2026-11-13,github_release,downloads_total,0,0 个 release
+2026-11-13,github_traffic,_unavailable,,HTTP 403: Resource not accessible by integration（流量接口需要 push 权限）
 2026-11-13,hf_model,downloads_30d,0,平台口径：近 30 天
 2026-11-13,hf_model,downloads_all_time,0,
 2026-11-13,hf_model,likes,0,
