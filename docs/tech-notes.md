@@ -40,6 +40,10 @@
 > **先说结论：当前主线是 ONNX（venv 实测 `sherpa_onnx 2.0.0` + `onnxruntime 1.31.0`），不是 ncnn。**
 > ncnn 是 2026-10 的旧线，模型资产仍占 135 MB × 2（`official_model/`、`apk_models/`）。
 > 完整决策记录见 `docs/adr-001-runtime.md`。
+>
+> **一句话说清 ncnn 到底跑没跑**：在 **Android 真机上跑过**（2026-10-25 改造 APK 换模型后装机成功，arm64 + Vulkan）；
+> 在 **Windows x86-64 上从未跑过**（`.venv` 无 `sherpa_ncnn`，全仓 `.py` 无 `import sherpa_ncnn`）。
+> 另外 `ASR升级评估报告.md` 里的 `RTF 0.3~0.6` 是该报告自标的**估算值**，不是实测，别引用成数据。
 
 事实核查（PyPI JSON API 实拉，不是记忆）：
 

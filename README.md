@@ -9,6 +9,21 @@
 
 ---
 
+## 前言：为什么重造轮子
+
+造轮子的人总要被问一次：轮子已经有圆的了。
+
+端侧这件事上，轮子确实不缺。缺的是有人愿意把**走过的死路标出来**——每个走过的人自己摔一次，摔完不说，下一个人再摔一次。
+所以这个仓库最后留下的不是"我们的轮子更圆"，是那张地图：12 个格子里只有 2 格能同时满足「CPU 能跑 · 流式 · 可分发」，其余每一格都写清为什么不行，能引官方文档的就不靠感觉。
+
+这 2 格我们只拿 1 格做产品，另 1 格照样写进文档。
+这是这个小项目的分寸：**产品可以只给一个答案，测绘必须给出全部答案。**
+
+- 想知道那张图怎么来的、凭什么能证伪 → [`docs/paper.md`](docs/paper.md)（工作稿）
+- 想看我们撞过的墙 → [`docs/negative-results.md`](docs/negative-results.md)（11 条，含推翻自己的那一条）
+
+---
+
 ## 它做什么
 
 - 把**系统声音**或**麦克风**实时转成文字（中文 / 英文 / 日文 / 韩文 / 粤语）
@@ -97,16 +112,19 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 
 | 文件 | 内容 |
 |---|---|
+| `docs/paper.md` | **工作稿**：可分发空集测绘，含证据分级、效度威胁、可证伪条件 |
+| `docs/negative-results.md` | **负结果册**：11 条没成的事 + 判定 + 证据路径（含推翻自己主结论那条） |
+| `docs/bench/README.md` | 可用性矩阵成品：12 格逐格原因、证据分级、决策树、PR 模板（图见 `matrix.svg/png/pdf`） |
+| `docs/research-plan.md` | 长期展望：端侧 ASR 运行时可用性地图（维度定义、最小实验集、社区形态） |
+| `docs/adr-001-runtime.md` | ADR：ncnn 与 ONNX 曾并存，主线定为 ONNX（含取舍依据，部分理由已作废并标注） |
 | `docs/contract.md` | 扩展与后端之间的 API 契约（唯一接口约定） |
 | `docs/distribution.md` | 后端分发方案：体积账、三条路线、P0→P5 |
+| `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |
 | `docs/naming.md` | 命名与定位：候选判定、域名实测、双语口径 |
 | `docs/naming-tooling.md` | 命名工具链：能力核查、分工边界、聚类实测 |
-| `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |
-| `docs/adr-001-runtime.md` | ADR：ncnn 与 ONNX 曾并存，主线定为 ONNX（含取舍依据） |
-| `docs/research-plan.md` | 长期展望：端侧 ASR 运行时可用性地图（四格式 × 资源 × 模型） |
-| `docs/bench/README.md` | **可用性矩阵成品**：12 格逐格原因 + 决策树 + PR 模板（图见 `matrix.svg/png/pdf`） |
 | `docs/publish.md` | 发布占位清单（GitHub + Release + 命名判定） |
 | `brand/README.md` | 图标设计过程（四候选、逐尺寸光栅化对比） |
+| `CITATION.cff` | 引用信息（GitHub 侧栏会显示「Cite this repository」） |
 
 ## License
 

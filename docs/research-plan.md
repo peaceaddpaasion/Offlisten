@@ -29,7 +29,7 @@
 | 格式 | SenseVoice 是否有实现 | 证据 |
 |---|---|---|
 | ONNX | ✅ **本项目正在用** | `sherpa_onnx 2.0.0` + `onnxruntime 1.31.0` |
-| ncnn | ✅ 2025-09 加入 | sherpa-ncnn #416「Export sense voice to sherpa-ncnn」/ #418「C++ runtime for sense-voice」 |
+| ncnn | ✅ 2025-09 加入，**已发预编译模型包** | sherpa-ncnn #416「Export sense voice to sherpa-ncnn」/ #418「C++ runtime for sense-voice」；release tag `asr-models`（2025-09-13）6 个 asset = `sherpa-ncnn-sense-voice-zh-en-ja-ko-yue-{2024-07-17,2025-09-09}` × {默认, int8, float32} |
 | GGUF | ✅ **官方已发布** | `FunAudioLLM/SenseVoiceSmall-GGUF`：q8 ≈235 MB、f16 470 MB，**CPU 8 线程 8.01% CER**（184 条普通话），同基准下 whisper.cpp 为 22–31% |
 | TensorRT | ⚠️ 需 ONNX→engine，须 NVIDIA GPU | 见 §4 |
 
@@ -67,6 +67,9 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 
 把上面四条画成矩阵，会发现**四格式 × 三平台 = 12 格里，真正"能跑且适合分发"的只有 3–4 格**。
 这个结论不需要训练任何模型，只需要读文档 + 两次 PyPI 查询。
+
+若再叠上「必须流式」（会议实时字幕的硬需求），只剩 **2 格**——`sherpa-onnx` 与 `sherpa-ncnn` 的 x86-64 CPU。
+精确计数、逐格证据等级与修订过程见 `docs/bench/README.md`；形式化表述见 `docs/paper.md`。
 
 ## 5. 最小实验集：12–16 格，不是全跑
 
@@ -114,7 +117,7 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 
 ## 9. 已核实 / 未核实
 
-**已核实**：TensorRT 不支持 CPU（NVIDIA FAQ + Triton 矩阵）；TRT engine 设备绑定、JetPack 不支持 11.3、DLA 在 11.3 移除；sherpa-ncnn 无 win_arm64 wheel；SenseVoice 有官方 GGUF（q8 235MB，8 线程 8.01% CER）；sherpa-ncnn 2025-09 支持 SenseVoice 导出。
+**已核实**：TensorRT 不支持 CPU（NVIDIA FAQ + Triton 矩阵）；TRT engine 设备绑定、JetPack 不支持 11.3、DLA 在 11.3 移除；sherpa-ncnn 无 win_arm64 wheel；SenseVoice 有官方 GGUF（q8 235MB，8 线程 8.01% CER）；sherpa-ncnn 2025-09 支持 SenseVoice 导出**且已发预编译模型包**（tag `asr-models`，2026-11-12 复核）；本机 Windows x86-64 **从未安装运行** `sherpa_ncnn`；ncnn 在 **Android 真机**跑过（2026-10-25 改造 APK 装机）。
 
 **未核实**：SenseVoice 导出 ncnn 后的实际 RTF/CER；`sherpa-ncnn` 在本机 Python 3.13 能否装跑；TRT 转 SenseVoice 的算子支持度；arm64 硬件是否可得；SenseVoice GGUF 的实时流式能力（目前看是非流式）。
 
@@ -148,7 +151,9 @@ Triton 的 Backend-Platform Support Matrix 也一致：TensorRT 在 x86 与 ARM-
 
 | 文件 | 用途 |
 |---|---|
+| `docs/paper.md` | 工作稿：形式化问题、证据分级、效度威胁、可证伪条件 |
+| `docs/negative-results.md` | 负结果册：11 条没成的事 + 判定 + 证据路径 |
 | `docs/bench/matrix.svg` | 图源，可编辑（改一格不用重画） |
 | `docs/bench/matrix.png` | 社交平台发布用（1000×780） |
 | `docs/bench/matrix.pdf` | 打印 / 引用 |
-| `docs/bench/README.md` | 逐格原因、不测清单、贡献模板、决策树 |
+| `docs/bench/README.md` | 逐格原因、证据分级、不测清单、贡献模板、决策树 |

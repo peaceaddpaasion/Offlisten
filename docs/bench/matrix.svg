@@ -10,7 +10,7 @@
 
   <!-- 标题 -->
   <text x="40" y="50" font-size="30" font-weight="700" fill="#12181d">Which backend can you actually ship?</text>
-  <text x="40" y="82" font-size="16" fill="#5a646e">端侧 ASR 运行时可用性：4 个运行时 × 3 个目标平台。颜色越深越可用。</text>
+  <text x="40" y="82" font-size="16" fill="#5a646e">端侧 ASR 运行时可用性：4 个运行时 × 3 个目标平台。颜色越深越可用。v2 · 2026-11-12</text>
 
   <!-- 色带图例 -->
   <g font-size="11.5" fill="#5a646e">
@@ -27,7 +27,8 @@
   </g>
 
   <!-- 结论条 -->
-  <text x="40" y="146" font-size="17" font-weight="600" fill="#17513a">12 个格子里，只有 1 格同时满足「CPU 能跑 + 流式 + 能给未知用户分发」。</text>
+  <text x="40" y="146" font-size="17" font-weight="600" fill="#17513a">硬约束「CPU 能跑 · 流式 · 可分发」：12 格里只有 2 格通过。</text>
+  <text x="960" y="146" font-size="12.5" fill="#5a646e" text-anchor="end">GGUF 卡流式 · TensorRT 卡 CPU · ncnn 那格尚未实测</text>
 
   <!-- 列头 -->
   <g font-size="14" font-weight="600" fill="#3c4650">
@@ -70,10 +71,10 @@
 
   <!-- ROW 2: sherpa-ncnn -->
   <g>
-    <rect x="200" y="300" width="250" height="100" rx="6" fill="#a8d0bd"/>
-    <text x="218" y="338" font-size="17" font-weight="700" fill="#12301f">limited</text>
-    <text x="218" y="362" font-size="12.5" fill="#1d4732">no stronger model to switch to ⑤</text>
-    <text x="218" y="382" font-size="12.5" fill="#1d4732">needs pnnx re-export</text>
+    <rect x="200" y="300" width="250" height="100" rx="6" fill="#5fa384"/>
+    <text x="218" y="338" font-size="17" font-weight="700" fill="#ffffff">ok · 运行时未测</text>
+    <text x="218" y="362" font-size="12.5" fill="#eaf5ef">官方已发 SenseVoice ncnn 包 ⑤</text>
+    <text x="218" y="382" font-size="12.5" fill="#eaf5ef">本机从未装 · 无 RTF 数据</text>
 
     <rect x="460" y="300" width="250" height="100" rx="6" fill="#2f7d5c"/>
     <text x="478" y="338" font-size="17" font-weight="700" fill="#ffffff">ok</text>
@@ -129,7 +130,7 @@
     <text x="40" y="690">② TensorRT engine 默认只与构建它的设备兼容；hardware compatibility 仅支持 Ampere 及以后，且 JetPack / Jetson 不支持。11.3 不再支持 JetPack。</text>
     <text x="40" y="710">③ 实测 PyPI JSON：sherpa-ncnn 2.1.15 只有 cp313 win32 / win_amd64 轮子，无 win_arm64；sherpa-onnx 2.0.1 有 win_arm64。</text>
     <text x="40" y="730">④ 现有 GGUF ASR 基本是非流式（SenseVoiceSmall-GGUF = SAN-M encoder + CTC，整段输入）。它的强项是离线批量与单文件零依赖，不是实时字幕。</text>
-    <text x="40" y="750">⑤ ncnn 侧最强中英双语模型被实证是官方 bilingual-2023-02-13 的换皮：param / tokens 的 md5 完全一致，纯改名未微调。</text>
+    <text x="40" y="750">⑤ 修正：此前「ncnn 没有更强的模型可换」不成立——官方 release tag asr-models（2025-09-13）已发 SenseVoice 的 ncnn 模型包（int8/float32）。缺的不是模型，是实测。</text>
   </g>
-  <text x="960" y="770" font-size="11" fill="#9aa5ad" text-anchor="end">数据源：本仓库实测 + 官方文档；空格子给依据，不给猜测</text>
+  <text x="40" y="770" font-size="11.5" fill="#5a646e">⑥ 本机 ncnn 只经「改造 APK」在 Android 真机跑过（2026-10-25 装机成功）；Windows x86-64 从未安装 sherpa_ncnn，故该格无 RTF。Android 不在本图平台列，是这版的已知缺口。</text>
 </svg>

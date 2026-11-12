@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this work or the availability matrix, please cite it as below. Prefer citing the version/commit — the conclusions evolve."
+title: "Offlisten 录匣：100% 离线的会议 / 课堂转写（扩展 + 本机 ASR 引擎）"
+abstract: >-
+  A 12.5 KB MV3 browser extension plus a local ASR engine. No account, no cloud,
+  no telemetry. The repository also maintains a distributability survey of
+  4 on-device ASR runtimes (ONNX Runtime / ncnn / GGUF / TensorRT) across
+  3 platforms (x86-64 CPU / x86-64 + NVIDIA GPU / Windows arm64), including
+  documented non-existent combinations and a ledger of negative results.
+type: software
+authors:
+  - name: "peaceaddpaasion"
+    alias: "peaceaddpaasion"
+license: MIT
+repository-code: "https://github.com/peaceaddpaasion/Offlisten"
+url: "https://github.com/peaceaddpaasion/Offlisten"
+version: "0.2.1"
+date-released: "2026-11-12"
+keywords:
+  - offline speech recognition
+  - on-device ASR
+  - edge inference
+  - sherpa-onnx
+  - ncnn
+  - GGUF
+  - TensorRT
+  - browser extension
+  - negative results
+preferred-citation:
+  type: generic
+  title: "端侧 ASR 运行时的可分发空集：4 格式 × 3 平台的可用性测绘（工作稿 v2）"
+  authors:
+    - name: "peaceaddpaasion"
+      alias: "peaceaddpaasion"
+  year: 2026
+  month: 11
+  url: "https://github.com/peaceaddpaasion/Offlisten/blob/main/docs/paper.md"
