@@ -128,7 +128,7 @@
       hintEl.textContent = "还没有可复制的转写内容，先连接并产生几段转写。";
       return;
     }
-    var head = "# Offlisten 事实源\n" +
+    var head = "# 录匣 Offlisten 事实源\n" +
                "# 原文来自本机离线 ASR；标「译 」的行由 Argos 离线机器翻译生成，不是原文。\n\n";
     try {
       await navigator.clipboard.writeText(head + factsText);
