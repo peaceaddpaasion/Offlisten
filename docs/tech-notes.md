@@ -110,34 +110,29 @@ P4 商店认证
 **当前卡点是 P1 之前**：主项目里 `find` 不到任何 `*.spec`、`build/`、`dist/`、`AppxManifest.xml`。
 也就是说**还没有一个能双击运行的产物**，商店无从谈起。
 
-## 5. GitHub 状态
+## 5. GitHub 状态（已推送）
 
-本机到 `github.com` 的 HTTPS 被沙箱代理拦截：
+2026-11-12 17:48 完成首次推送。远端原先只有一个网页初始化提交 `83bb199`（`Initial commit`：`LICENSE` 21 行 + `README.md` 2 行），
+与本地历史没有共同祖先，因此用 `--force-with-lease` 覆盖：
 
 ```
-git ls-remote https://github.com/peaceaddpaasion/Offlisten
-fatal: ... CONNECT tunnel failed, response 502
+ + 83bb199...cc22616 main -> main (forced update)
+ * [new tag]         v0.2.1 -> v0.2.1
 ```
 
-连接是间歇性的：有一次 `git ls-remote` 成功，读到 `refs/heads/main = 83bb1997f1a6…`；之后全部 502。
-该提交**不在本地历史里**（本地根提交是另一条线），所以首次 push 很可能被判 non-fast-forward。
-GitHub API 对 `peaceaddpaasion/Offlisten` 返回 404——仓库未公开或尚不存在，两者都会是这个响应。
+覆盖前先把那两个文件里的信息留了下来，否则会静默丢失：
 
-本地状态是可信的：`main` 分支、tag `v0.2.1`、工作树干净、打包后 1.05 MiB（最大单文件 202 KB，无体积风险）。
+- `LICENSE` 的版权持有人是真实署名 `LI BINGZHEN`，本地原先写的是 `Offlisten contributors`——已改回；
+- `README.md` 那两句描述存进了 `docs/publish.md`，作为仓库 About 栏文案。
 
-推送需要在**非沙箱环境**执行。先探测远端，再按结果选动作：
+当前远端：`main = cc22616`，44 个文件，`git diff origin/main main` 为空。
 
-```bash
-git ls-remote origin
-```
+**遗留：仓库是私有的。** 未登录访问 `api.github.com/repos/peaceaddpaasion/Offlisten` 返回 404。
+要对外传播必须先改可见性：仓库页 → Settings → General → 最下方 Danger Zone → Change visibility → Public。
+公开后会被搜索引擎与镜像站抓取，撤回也删不干净，改之前想清楚。
 
-| 输出 | 含义 | 下一步 |
-|---|---|---|
-| 报错 `Repository not found` | 仓库没有、或账号不对 | 去网页建仓，或确认用户名拼写 |
-| 无输出 | 仓库存在但为空 | `git push -u origin main --tags` |
-| 有 `refs/heads/main` | 远端已有提交 | `git fetch origin main` 后看 `git log --oneline -1 FETCH_HEAD` |
-
-远端若只是网页初始化时生成的单个 README，`git push --force-with-lease origin main` 是安全的选择（覆盖掉的就是一行自动生成的标题）；若里面有别的提交，别强推，先对齐。
+工具侧的事实：沙箱内 git 一律走 `127.0.0.1` 代理，访问 `github.com` 报 `CONNECT tunnel failed, response 502`，
+清空 `HTTP_PROXY`/`HTTPS_PROXY` 无效；非沙箱执行才通。这不是凭据问题——凭据助手是 `manager`，登录态一直有效。
 
 进仓库根目录的写法随 shell 变，别混用：
 
@@ -149,7 +144,7 @@ git ls-remote origin
 
 ## 6. 未验证清单
 
-- 远端 `refs/heads/main = 83bb1997f1a6…` 的内容是什么（只读到 sha，没读到内容）。
+- 仓库可见性仍是私有（需在网页改），改了之后搜索引擎和镜像站的抓取无法撤回。
 - MSIX 的 VFS 重定向与只读行为（按机制推断，未打包实测）。
 - `sherpa-ncnn` 在本机 Python 3.13 x64 上实际可跑、以及 SenseVoice→ncnn 的质量差。
 - Microsoft Store 当前对个人开发者的具体条款（政策变动频繁，提交前需看 Partner Center）。
