@@ -1,0 +1,186 @@
+{
+  "generated_at": "2026-11-12T17:41:49+0800",
+  "source_root": ".",
+  "note": "Only files the runtime opens are listed. fp32 weights and .tar.bz2 archives are excluded by design.",
+  "tiers": {
+    "standard": {
+      "label": "Standard (SenseVoice int8) - zh/en/ja/ko/yue, non-streaming, punctuation",
+      "available": true,
+      "missing": [],
+      "file_count": 6,
+      "bytes": 240199669,
+      "mib": 229.1,
+      "files": [
+        {
+          "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.int8.onnx",
+          "bytes": 239233841,
+          "sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/tokens.txt",
+          "bytes": 315894,
+          "sha256": "f449eb28dc567533d7fa59be34e2abca8784f771850c78a47fb731a31429a1dc",
+          "required": true
+        },
+        {
+          "path": "pc_models/silero_vad.onnx",
+          "bytes": 643854,
+          "sha256": "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/LICENSE",
+          "bytes": 71,
+          "sha256": "221c6df10b0931a5629adad671ea48fb7747e034c414b6d2bfa275bc3dd4ea17",
+          "required": false
+        },
+        {
+          "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/README.md",
+          "bytes": 104,
+          "sha256": "763991a00edaea534ab36bf1b7cf89e61e911666dcfabbba71f91f9f7c593a63",
+          "required": false
+        },
+        {
+          "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/export-onnx.py",
+          "bytes": 5905,
+          "sha256": "c97f6a33f9d7135efd4d55b3e24e288c47d925f3b4f04b8b3418c2821c0a89ce",
+          "required": false
+        }
+      ]
+    },
+    "english": {
+      "label": "English add-on (streaming zipformer int8)",
+      "available": true,
+      "missing": [],
+      "file_count": 6,
+      "bytes": 71159049,
+      "mib": 67.9,
+      "files": [
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/encoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+          "bytes": 70108816,
+          "sha256": "5022b2eca5b19d1bc104fcf33e26bc32604b7df553cd2e1f62e31dc7b05e9c87",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/decoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+          "bytes": 540688,
+          "sha256": "780c63ee94c7cfa314211172e5d09b406c0da2beab5c40ea2f54cc95670b76a5",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/joiner-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+          "bytes": 259416,
+          "sha256": "abd5e30f3f16fc510605c6029dba33f10e4386bd75c5bdc30cf94076864db10d",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/tokens.txt",
+          "bytes": 5048,
+          "sha256": "49e3c2646595fd907228b3c6787069658f67b17377c60aeb8619c4551b2316fb",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/bpe.model",
+          "bytes": 244865,
+          "sha256": "c53433de083c4a6ad12d034550ef22de68cec62c4f58932a7b6b8b2f1e743fa5",
+          "required": false
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/README.md",
+          "bytes": 216,
+          "sha256": "c914dd28e23310a6dd345ea10495003d3e4820d2ed987181e4c2d67e501b6b76",
+          "required": false
+        }
+      ]
+    },
+    "lite": {
+      "label": "Lite (streaming zipformer int8, zh-14M + en)",
+      "available": false,
+      "missing": [
+        "pc_models/sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23/encoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+        "pc_models/sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23/decoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+        "pc_models/sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23/joiner-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+        "pc_models/sherpa-onnx-streaming-zipformer-zh-14M-2023-02-23/tokens.txt"
+      ],
+      "file_count": 5,
+      "bytes": 71557822,
+      "mib": 68.2,
+      "files": [
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/encoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+          "bytes": 70108816,
+          "sha256": "5022b2eca5b19d1bc104fcf33e26bc32604b7df553cd2e1f62e31dc7b05e9c87",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/decoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+          "bytes": 540688,
+          "sha256": "780c63ee94c7cfa314211172e5d09b406c0da2beab5c40ea2f54cc95670b76a5",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/joiner-epoch-99-avg-1-chunk-16-left-128.int8.onnx",
+          "bytes": 259416,
+          "sha256": "abd5e30f3f16fc510605c6029dba33f10e4386bd75c5bdc30cf94076864db10d",
+          "required": true
+        },
+        {
+          "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/tokens.txt",
+          "bytes": 5048,
+          "sha256": "49e3c2646595fd907228b3c6787069658f67b17377c60aeb8619c4551b2316fb",
+          "required": true
+        },
+        {
+          "path": "pc_models/silero_vad.onnx",
+          "bytes": 643854,
+          "sha256": "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+          "required": true
+        }
+      ]
+    }
+  },
+  "excluded": [
+    {
+      "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/model.onnx",
+      "reason": "fp32 weights, 937 MB, runtime never opens it",
+      "present": true
+    },
+    {
+      "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/encoder-epoch-99-avg-1-chunk-16-left-128.onnx",
+      "reason": "fp32 encoder",
+      "present": true
+    },
+    {
+      "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/decoder-epoch-99-avg-1-chunk-16-left-128.onnx",
+      "reason": "fp32 decoder",
+      "present": true
+    },
+    {
+      "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/joiner-epoch-99-avg-1-chunk-16-left-128.onnx",
+      "reason": "fp32 joiner",
+      "present": true
+    },
+    {
+      "path": "pc_models/sensevoice.tar.bz2",
+      "reason": "source archive",
+      "present": true
+    },
+    {
+      "path": "pc_models/en-streaming.tar.bz2",
+      "reason": "source archive",
+      "present": true
+    },
+    {
+      "path": "pc_models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17/test_wavs",
+      "reason": "sample audio",
+      "present": true
+    },
+    {
+      "path": "pc_models/sherpa-onnx-streaming-zipformer-en-2023-06-26/test_wavs",
+      "reason": "sample audio",
+      "present": true
+    }
+  ]
+}

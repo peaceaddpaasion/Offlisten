@@ -5,25 +5,47 @@
 
 ## 一、先把体积算清楚
 
-实测（本机 `whisper` 项目）：
+全部数字来自 `python scripts/build-dist.py --source <后端项目> --stage dist/stage --compress`（P0 产物，可当场复跑），不是估算：
 
-| 组成 | 体积 | 是否必需 |
-|---|---|---|
-| `sherpa_onnx` + `onnxruntime` + `numpy` | 27 + 45 + 31 MB | 必需（ASR 推理） |
-| `soundcard`（WASAPI loopback 采集） | ~1 MB | 必需（抓系统声音） |
-| SenseVoice `model.int8.onnx` | **229 MB** | 必需（中英日韩粤） |
-| zipformer int8（encoder+decoder+joiner） | **68 MB** | 可选（英文低延迟） |
-| Silero VAD | 0.6 MB | 必需 |
-| Python 运行时（embeddable） | ~15 MB | 必需 |
-| **最小可用合计** | **≈ 350 MB**（压缩后约 200 MB） | |
-| Argos 翻译：`torch` 502 + `ctranslate2` 62 + `spacy` 92 + 词表 166 MB | **≈ 820 MB** | **可选，绝不能进主安装包** |
-| 全量 `pc_models`（含 fp32 895MB 与 tar 包） | 2.7 GB | 否，只分发 int8 |
+| 组成 | 原始 | deflate 后 | 是否必需 |
+|---|---|---|---|
+| SenseVoice `model.int8.onnx` | 228.2 MiB | **152.7 MiB (67%)** | 必需（中英日韩粤） |
+| SenseVoice `tokens.txt` | 0.3 MiB | — | 必需 |
+| Silero VAD | 0.6 MiB | — | 必需 |
+| zipformer-en int8 三件 | 67.9 MiB | — | 可选（英文低延迟流式） |
+| `sherpa_onnx` + `onnxruntime` + `numpy` | 88.3 MiB / 1256 文件 | **29.6 MiB (34%)** | 必需（ASR 推理） |
+| `soundcard`（WASAPI loopback） | ~1 MiB | — | 必需（抓系统声音） |
+| Python 运行时（embeddable） | ~15 MiB | ~7 MiB | 必需（此项未打包实测，仍是估算） |
+| **Standard 安装包合计** | **≈ 333 MiB** | **≈ 190 MiB** | |
+| Argos 翻译：`torch` 502 + `ctranslate2` 62 + `spacy` 92 + 词表 166 | ≈ 820 MiB | — | **可选，绝不能进主安装包** |
+
+**三块压出来的数：模型 153.4 + 运行时 29.6 + Python ≈7 = 190 MiB。**「压缩后约 200 MB」这个说法成立，
+但它成立的原因值得写下来：int8 权重只压掉 33%，而运行时 DLL 压掉 66%——**安装包的重量几乎全在那一个 `.onnx` 上**。
+
+由此只有两个真杠杆：
+
+1. **换模型**。Lite 档（zipformer int8，中英各一套）原始 68 MiB，压后约 40 MiB，代价是 14M 中文对术语/口音/远场掉字、不出标点。
+2. **不内置模型**，改成首次运行下载。但「拔掉网线它还在写」是本产品的第一句话，装机时联网就是自毁承诺。**所以不走这条。**
 
 两条立刻要执行的结论：
 
-1. **只分发 int8**。`model.onnx`（895 MB）与 `*.tar.bz2` 是开发期产物，不进任何发行包。
-2. **翻译必须做成可选组件下载**。带上 Argos 后安装包从 350 MB 涨到 1.2 GB，这是转化率杀手；
+1. **只分发 int8**。`model.onnx`（937,617,178 B）、`encoder-...onnx`（260,642,850 B）与 `*.tar.bz2` 都是开发期产物。
+   代码本身就只打开 int8（`pc_transcriber.py:84` 硬编码 `model.int8.onnx`），fp32 从来没被读过。
+2. **翻译必须做成可选组件下载**。带上 Argos 后安装包从 190 MiB 涨到 1 GB 级，这是转化率杀手；
    而翻译本来就是「有更好、没有也能用」的能力。
+
+### 内置模型的一个隐藏收益：升级不必重下 200 MB
+
+`dist-manifest.json` 给每个发行文件记了 `sha256`。模型文件在一次版本里是**不变**的，所以安装器升级时可以：
+
+- 逐文件比对 sha256 → 相同的跳过复制 → 用户升级下载的是几 MB 的 exe，不是 200 MB；
+- 安装器崩溃后可断点续传、可校验完整性，而不是「重下一次看看」。
+
+这也是为什么清单要进仓库、而不是只存在于打包脚本的运行时内存里。
+
+> 清单长这样（节选，全量见仓库根的 `dist-manifest.json`）：每个 tier 有 `available` / `missing` / `mib` / `files[]`，
+> 每个文件带 `bytes` 与 `sha256`；另有一张 `excluded` 表，写明哪些文件被**故意**排除以及原因。
+> 排除项也记账，是为了让「为什么包里没有那个 937 MB 的 model.onnx」有个可查的答案。
 
 ## 二、硬约束（都不是能绕过的）
 
@@ -125,16 +147,19 @@ sherpa-onnx 官方有 WASM 构建，社区也已有 npm 封装（`speech-asr`，
 
 | 阶段 | 做什么 | 验收 |
 |---|---|---|
-| P0（本周） | 模型瘦身：发行包只取 int8 + VAD，写一份 `dist-manifest.json` 记录必需文件与体积 | 发行目录 <400 MB，`--self-test` 全绿 |
-| P1 | PyInstaller **onedir** 打包（不用 onefile：每次启动解压 350 MB，启动要 5-10 秒） | 干净机器双击可跑，首帧转写延迟无回退 |
-| P2 | Inno Setup 安装器：解压、写卸载项、可选写 NM 注册表、首次运行引导 | 虚拟机全新安装 → 托盘起来 → live 页可开 |
+| P0（**已完成**） | 模型瘦身：`scripts/build-dist.py` 只取 int8，产出 `dist-manifest.json`（逐文件 sha256），实测发行体积 | 实测：Standard 档 229.1 MiB → 打包 153.4 MiB；运行时 88.3 → 29.6 MiB；安装包合计 ≈190 MiB |
+| P1 | PyInstaller **onedir** 打包（不用 onefile：每次启动解压 190 MiB，启动要 5-10 秒） | 干净机器双击可跑，首帧转写延迟无回退；实测安装目录体积与冷启动耗时 |
+| P2 | Inno Setup 安装器：解压、写卸载项、可选写 NM 注册表、首次运行引导、按 sha256 跳过未变模型 | 虚拟机全新安装 → 托盘起来 → live 页可开；**升级路径实测：只换 exe 时下载 <20 MiB** |
 | P3 | NM host（只做桥：`discover` 返回 `{url, token}`，`launch` 拉起引擎）；扩展加 `nativeMessaging` 权限与降级逻辑 | 扩展零手粘连上；NM 不可用时回退到手粘 |
 | P4 | 翻译作为可选组件（独立下载 + 校验 + 卸载） | 主安装包体积不因翻译上涨 |
 | P5（可选） | WASM 轻量版，只覆盖网页会议 | 网页会议零安装可用 |
 
+P0 的缺口：Lite 档**当前无法组装**——`pc_models/` 里没有 `zipformer-zh-14M` 那套文件，`dist-manifest.json` 里 `lite.available = false` 并列出 4 个缺失路径。
+Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），所以它不能只停在文档里。
+
 ## 六、没验证的假设（别当结论用）
 
-- PyInstaller 打包 `sherpa-onnx` + `onnxruntime` 在本机 Python 3.13 上的实际产物大小与启动耗时——**未实测**。
+- PyInstaller 打包 `sherpa-onnx` + `onnxruntime` 在本机 Python 3.13 上的**产物大小与冷启动耗时**——模型与依赖的体积已实测（190 MiB 与分解见 §一），但 PyInstaller 会额外带入什么、onedir 目录最终多大，**未实测**。
 - Windows 代码签名证书成本与 SmartScreen 放行时间——未调研。
 - `chrome.tabCapture` 在 MV3 offscreen document 里的实际延迟与稳定性——未实测。
 - SenseVoice int8 在 WASM 单线程下的 RTF——未实测，官方只提示「吞吐有要求放桌面端」。
