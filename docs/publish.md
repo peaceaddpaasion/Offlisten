@@ -37,7 +37,9 @@
 4. **README 首屏保持三行以内**：一句承诺 + 四个数字。技术面试官只看前 15 秒。
 5. **确认数据账本开始记数**。`Metrics` 工作流每天 03:17 UTC 快照一次，私有期间全是 0；
    转公开后第一周去看 `docs/metrics/history.csv` 是否出现非零段——那是「真的有人来了」的第一个客观证据。
-   同时可以把 `docs/metrics/README.md` 末尾的三个 shields 徽章解引到 README（私有期间指向的 raw 链接会 404）。
+   同时可以按 `docs/metrics/README.md` 的步骤配一个 `METRICS_TOKEN`（流量接口只认 fine-grained 的
+   Administration 权限，内置 token 打它 403），再把三个 shields 徽章解引到 README。
+   私有期间指向的 raw 链接会 404，徽章先别放。
 
 ## 3. 为什么用 MIT 而不是 AGPL
 

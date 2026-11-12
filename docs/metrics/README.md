@@ -39,6 +39,10 @@
 
 整源失败时只写一行 `_unavailable`，不为每个指标各写一条空值——同一句话刷十遍，表就没法看了。
 
+标记和真数据会打架：同一个源一天里可能一次成功、一次失败（本机有 PAT，CI 只有内置 token）。
+两条规则消解它：**有数据就不留标记**（取到了比"当时没取到"更接近事实）；
+**本次运行该源成功就删掉今天的旧标记**（否则本机补跑成功后，表里还挂着 CI 那次的 403，读者会以为现在也取不到）。
+
 ## 怎么读
 
 - `downloads_total`、`downloads_all_time`、`stars` 是**累计值**：求相邻两天之差才是增量。
@@ -54,8 +58,27 @@ python tools/metrics.py --write         # 写 docs/metrics/history.csv 与徽章
 python tools/metrics.py --report        # 把已记下的历史打成 Markdown 表
 ```
 
-GitHub 凭证依次取 `--github-token` → `$GITHUB_TOKEN` → `git credential fill`（本机凭证管理器）。
-CI 里用内置的 `secrets.GITHUB_TOKEN`，配合 `permissions: contents: write` —— 流量接口要的是 push 权限，只读 token 打它返回 403，不是空数据。
+GitHub 凭证依次取 `--github-token` → `$GH_TOKEN` / `$GITHUB_TOKEN` → `git credential fill`（本机凭证管理器）。
+
+### 流量数据要单独配一个令牌
+
+**Actions 内置的 `GITHUB_TOKEN` 打不了 `/traffic/*`。** 这不是权限没开够，而是权限模型：
+这几个端点要求 fine-grained token 的 **Administration (read)**，而 `permissions:` 里根本没有
+`administration` 这一项可以授予。实测结果是 `403 Resource not accessible by integration`。
+
+配法（一次性）：
+
+1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
+2. Repository access 选 **Only select repositories** → `Offlisten`
+3. Permissions → Repository permissions → **Administration: Read-only**（这是流量接口要的那一项）
+4. 复制出来，仓库 → Settings → Secrets and variables → Actions → New secret，名字 `METRICS_TOKEN`
+
+工作流里是 `secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN`，没配也能跑：仓库计数、Release 下载数、
+HF 数字照常；只有流量那一段写成 `缺凭证`，并在 job 里发一条 warning，不写 0，也不会把整次运行判死。
+
+> 用 classic PAT 的话给 `repo` scope 也行（公开仓 `public_repo`）。
+> 本机不需要这个 secret：`git credential fill` 拿到的就是你自己账号的令牌，够用。
+
 
 `metrics.yml` 每天 **03:17 UTC（11:17 UTC+8）** 跑一次。选非整点是因为 GitHub 的定时任务在整点前后排队会漂。默认分支的定时任务才会触发，所以这本账只在 `main` 上累积。
 
