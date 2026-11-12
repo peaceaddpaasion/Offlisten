@@ -44,7 +44,11 @@ git push -u origin main --tags
 
 ## 2. 建完立刻做的四件事（占位的实际价值在这里）
 
-1. **About 栏**填描述 + 官网留空（不建站）。Topics 建议：
+1. **About 栏**填这句（网页建仓时已写过，别在覆盖时丢掉）：
+
+   > 本地离线会议转写（MV3 扩展 + sherpa-onnx/SenseVoice 引擎）录匣，性能和功能的精确权衡，部署灵活度和性能的博弈。
+
+   Topics 建议：
    `offline` `speech-to-text` `asr` `sherpa-onnx` `sensevoice` `privacy` `mv3` `chrome-extension` `chinese`
    —— 这几个词是**别人能找到你**的入口，比名字重要。
 2. **Pin 到个人主页**。简历上的链接比任何 SEO 都快。
