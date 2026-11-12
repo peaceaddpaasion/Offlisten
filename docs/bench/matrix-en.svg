@@ -108,8 +108,8 @@
   <g>
     <rect x="200" y="520" width="250" height="100" rx="6" fill="url(#none)" stroke="#c9d2d9"/>
     <text x="218" y="558" font-size="17" font-weight="700" fill="#7b868f">does not exist</text>
-    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA: "Does TensorRT</text>
-    <text x="218" y="602" font-size="12.5" fill="#7b868f">run on a CPU? No." ①</text>
+    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA: no CPU support,</text>
+    <text x="218" y="602" font-size="12.5" fill="#7b868f">GPU or Jetson only ①</text>
 
     <rect x="460" y="520" width="250" height="100" rx="6" fill="#a8d0bd"/>
     <text x="478" y="558" font-size="17" font-weight="700" fill="#12301f">ok, per-device engine</text>
@@ -125,7 +125,7 @@
   <!-- Footnotes -->
   <line x1="40" y1="646" x2="960" y2="646" stroke="#e2e8ec"/>
   <g font-size="11.5" fill="#5a646e">
-    <text x="40" y="670">① TensorRT on CPU is not "slow" — it does not exist. NVIDIA FAQ: "Does TensorRT run on a CPU? No. TensorRT needs an NVIDIA GPU or Jetson module."</text>
+    <text x="40" y="670">① TensorRT on CPU is not "slow"; it does not exist. NVIDIA's own Triton backend support matrix lists GPU but no CPU for TensorRT, on both x86 and ARM-SBSA.</text>
     <text x="40" y="690">② TensorRT engines are bound to the device they were built on; hardware compatibility starts at Ampere; JetPack / Jetson is not supported, and 11.3 drops JetPack.</text>
     <text x="40" y="710">③ Measured via PyPI JSON: sherpa-ncnn 2.1.15 ships cp313 win32 / win_amd64 only, no win_arm64; sherpa-onnx 2.0.1 does ship win_arm64.</text>
     <text x="40" y="730">④ GGUF ASR is mostly non-streaming today (SenseVoiceSmall-GGUF = SAN-M encoder + CTC, whole-utterance). Its strength is offline batch, not live captions.</text>

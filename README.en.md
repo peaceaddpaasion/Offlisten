@@ -8,23 +8,21 @@ Status: **works locally**. A 4,160-line Python engine (`engine/`) and a 12.5 KB 
 
 ---
 
-## Preface: why rebuild the wheel
+## Before you build another wheel
 
-Anyone who builds a wheel gets asked once: round wheels already exist.
+On-device ASR does not lack wheels. It lacks people who write down which ones they tried and why those failed.
 
-On-device ASR is not short of wheels. What it is short of is people willing to **mark the dead ends** — everyone walks into one, says nothing, and the next person walks into it again.
-So what this repository leaves behind is not "a rounder wheel", but a map: of 12 cells, only 2 satisfy *runs on CPU · streaming · shippable to strangers*. Every other cell says why it fails, and wherever an official document exists, the reason is quoted rather than felt.
+4 runtimes × 3 platforms is 12 cells. Two satisfy all three requirements at once: runs on CPU, streams, ships to a stranger's machine. The other ten say, cell by cell, why they fail, quoting official documentation wherever one exists.
 
-Of those 2 cells this project uses 1 for the product and documents the other one anyway.
-That is the proportion this small project keeps: **a product may give one answer; a survey has to give all of them.**
+Of those two, this project uses one for the product and documents the other one anyway.
 
 ![On-device ASR runtime availability matrix: 4 runtimes × 3 platforms, only 2 of 12 cells pass](docs/bench/matrix-en.png)
 
 <sub>中文版：[`docs/bench/matrix-zh.png`](docs/bench/matrix-zh.png) · Per-cell reasons and evidence tiers: [`docs/bench/README.md`](docs/bench/README.md)</sub>
 
-- How that map was built, and why it can be falsified → [`docs/paper.md`](docs/paper.md) (working paper)
-- Which roads were tried and abandoned → [`docs/negative-results.md`](docs/negative-results.md) (9 entries, each with a verdict and an evidence path)
-- How often it was opened, how often it was downloaded → [`docs/metrics/README.md`](docs/metrics/README.md) (the platforms keep 14 days; this repo copies it daily)
+- How the map was built and why it can be falsified → [`docs/paper.md`](docs/paper.md) (working paper)
+- Roads tried and abandoned → [`docs/negative-results.md`](docs/negative-results.md) (9 entries with verdicts and evidence)
+- How often it was opened and downloaded → [Counters](#counters) below (platforms keep 14 days; this repo copies them daily)
 
 ---
 
@@ -67,7 +65,7 @@ Offlisten
 **The engine does not need the extension**: uninstall the extension and it still works, serving its own live page on `127.0.0.1`.
 **The extension does not need the engine's code**: it only depends on the 4 endpoints fixed in `docs/contract.md`.
 
-So the two halves can be released, uninstalled and reimplemented separately — the engine runs on Python + sherpa-onnx today and could be rewritten in anything tomorrow; as long as the contract holds, not a single line of the extension changes.
+So the two halves can be released, uninstalled and reimplemented separately. The engine runs on Python + sherpa-onnx today and could be rewritten in anything tomorrow; as long as the contract holds, not a single line of the extension changes.
 
 ## Install (current stage: unpacked)
 
@@ -78,7 +76,7 @@ So the two halves can be released, uninstalled and reimplemented separately — 
 
 > Loading from the repository root fails: there is no `manifest.json` there. That is the cost of moving the extension into a subdirectory, and it is where it belongs.
 
-## Self-checks (these run, they are not decoration)
+## Self-checks
 
 ```bash
 node tools/contract_check.js          # 19 contract assertions against a running engine
@@ -88,6 +86,7 @@ pwsh tools/pack.ps1                   # package the extension, verify every file
 python tools/engine-drift.py          # engine/ vs working tree drift (exit 1 = drift)
 python tools/build-dist.py --source <engine> --compress   # measure the real install size
 python tools/metrics.py --report      # turn the recorded download/traffic history into a table (see docs/metrics/)
+python tools/metrics.py --write-readme   # regenerate the counter table in this file from that history
 ```
 
 `contract_check.js` reads the URL from `..\whisper\web_live.json` by default, or takes it explicitly:
@@ -97,7 +96,7 @@ node tools/contract_check.js --url "http://127.0.0.1:47813/?token=..."
 node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 ```
 
-## Explicit boundaries (what it refuses to do says more than what it does)
+## Boundaries
 
 - **The extension cannot work alone**, and cannot run models: an MV3 service worker is not a long-lived process, has no `child_process`, and stores forbid bundling native executables.
 - **The extension cannot capture the Zoom / Tencent Meeting desktop clients**: `tabCapture` only sees tabs. Capturing system-wide audio is the engine's job, via WASAPI loopback.
@@ -126,6 +125,24 @@ The extension resolves to the repository, the engine resolves to the working tre
 ## Version
 
 `extension/manifest.json`'s `version` is the only version number in this repository. Changing extension behaviour requires bumping it, otherwise store review cannot tell releases apart. Contract changes are logged in `docs/contract.md`.
+
+## Counters
+
+Platforms only show the current value: repo views are deleted after 14 days, a release's `download_count` is cumulative, HF reports a rolling 30 days. So this repository copies them once a day into `docs/metrics/history.csv`, and the table below is generated from that file rather than typed by hand.
+
+<!-- metrics:begin -->
+| Metric | Latest | 7 days ago | Change |
+|---|---|---|---|
+| Release downloads (total) | 0 | — | — |
+| HF model downloads (all time) | 0 | — | — |
+| HF model downloads (last 30 d) | 0 | — | — |
+| Repo views (last 14 d) | 0 | 0 | 0 |
+| Stars | 0 | — | — |
+
+<sub>Data date 2026-11-13, generated by `tools/metrics.py --write-readme` from [`docs/metrics/history.csv`](docs/metrics/history.csv). Missing values are —, never 0; definitions in [`docs/metrics/README.md`](docs/metrics/README.md).</sub>
+<!-- metrics:end -->
+
+The GitHub rows are 0 because the repository is still private: nobody can reach it yet.
 
 ## Docs
 

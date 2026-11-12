@@ -88,7 +88,7 @@ L2′ 单列的理由：**模型取证**（文件在、结构对得上、md5 一
 
 | 平台 | 判定 | 原因 |
 |---|---|---|
-| x86-64 CPU | **does not exist** | NVIDIA 官方 FAQ 原文：*"Does TensorRT run on a CPU? **No.** TensorRT needs an NVIDIA GPU or Jetson module."* Triton 的支持矩阵同样显示 x86 与 ARM-SBSA 都是 `GPU ✅ / CPU ❌`。 |
+| x86-64 CPU | **does not exist** | NVIDIA 自己的 Triton 后端支持矩阵里，TensorRT 在 x86 与 ARM-SBSA 都是 `GPU ✅ / CPU ❌`。原先引的是 TensorRT FAQ 的那句"No, TensorRT needs an NVIDIA GPU or Jetson module"，该页面的两个已知路径现在都是 404，所以改引同一家文档站里还能点开的矩阵。 |
 | x86 + NVIDIA GPU | ok，但**一机一引擎** | engine 默认只与构建它的设备类型兼容；hardware compatibility 仅支持 Ampere 及以后，且 **JetPack / Jetson 不支持**；TensorRT 11.3 不再支持 JetPack。→ 在"给未知用户的安装包"场景里几乎不可用。 |
 | Windows arm64 | **does not exist** | TensorRT 没有 Windows arm64 target；Jetson 走 Linux / JetPack。 |
 
@@ -120,7 +120,7 @@ L2′ 单列的理由：**模型取证**（文件在、结构对得上、md5 一
 
 ## 数据来源与可复现
 
-- **官方依据**：NVIDIA TensorRT FAQ、Triton Backend-Platform Support Matrix、TensorRT 11.3 Release Notes（JetPack 支持状态）。
+- **官方依据**：NVIDIA Triton Backend-Platform Support Matrix、TensorRT 11.3 Release Notes（JetPack 支持状态）。
 - **包矩阵实测**：PyPI JSON API 查 `sherpa-ncnn` / `sherpa-onnx` 的 wheel 文件名（`cp313-win*`），命令见 `docs/tech-notes.md` §1.4。
 - **ncnn 侧 SenseVoice**：`k2-fsa/sherpa-ncnn` release tag `asr-models`（2025-09-13）的 6 个 asset（2024-07-17 / 2025-09-09 × 默认/int8/float32）；文档 `k2-fsa.github.io/sherpa/ncnn/sense-voice/` 含 SenseVoice 专章。
 - **GGUF 数据**：`FunAudioLLM/SenseVoiceSmall-GGUF` 官方模型卡（q8/f16 体积、8 线程 8.01% CER）。

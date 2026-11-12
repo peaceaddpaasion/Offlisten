@@ -11,23 +11,22 @@
 
 ---
 
-## 前言：为什么重造轮子
+## 造轮子之前，先看这张图
 
-造轮子的人总要被问一次：轮子已经有圆的了。
+端侧 ASR 不缺轮子，缺的是有人把试过的路记下来。
 
-端侧这件事上，轮子确实不缺。缺的是有人愿意把**走过的死路标出来**——每个走过的人自己摔一次，摔完不说，下一个人再摔一次。
-所以这个仓库最后留下的不是"我们的轮子更圆"，是那张地图：12 个格子里只有 2 格能同时满足「CPU 能跑 · 流式 · 可分发」，其余每一格都写清为什么不行，能引官方文档的就不靠感觉。
+4 个运行时 × 3 个平台一共 12 格，只有 2 格同时满足「CPU 能跑 · 流式 · 能装进别人的机器」。
+其余 10 格逐格写了为什么不行，能引官方文档的不靠猜。
 
-这 2 格我们只拿 1 格做产品，另 1 格照样写进文档。
-这是这个小项目的分寸：**产品可以只给一个答案，测绘必须给出全部答案。**
+这 2 格里我们只拿 1 格做产品，另 1 格也照原样写进文档。
 
 ![端侧 ASR 运行时可用性矩阵：4 个后端 × 3 个平台，12 格里只有 2 格通过](docs/bench/matrix-zh.png)
 
 <sub>English version: [`docs/bench/matrix-en.png`](docs/bench/matrix-en.png) · 逐格原因与证据分级见 [`docs/bench/README.md`](docs/bench/README.md)</sub>
 
-- 想知道那张图怎么来的、凭什么能证伪 → [`docs/paper.md`](docs/paper.md)（工作稿）
-- 想看哪些路我们试过并放弃了 → [`docs/negative-results.md`](docs/negative-results.md)（9 条，含放弃理由与证据）
-- 想知道它被打开了多少次、下载了多少次 → [`docs/metrics/README.md`](docs/metrics/README.md)（平台只留 14 天，这里每天自己抄）
+- 图是怎么推出来的、凭什么能被证伪 → [`docs/paper.md`](docs/paper.md)（工作稿）
+- 试过并放弃的路 → [`docs/negative-results.md`](docs/negative-results.md)（9 条，附判定与证据路径）
+- 它被打开、被下载了多少次 → 下面的[计数](#计数)一节（平台只留 14 天，这里每天抄一次）
 
 ---
 
@@ -50,7 +49,7 @@
 
 ## 为什么说"离线"而不是"本地优先"
 
-"本地优先"是**策略**，可以随时改成上传；"离线"是**可验证的承诺**——断网演示十秒就能证伪。
+"本地优先"是**策略**，可以随时改成上传；"离线"是**可验证的承诺**：断网演示十秒就能证伪。
 所以对外只说后者，代码里也只做后者：没有上传路径，`host_permissions` 只声明 `127.0.0.1` / `localhost`。
 
 ## 架构：两个可独立运行的半边，一条契约
@@ -70,8 +69,8 @@
 **引擎不依赖扩展**：拔掉扩展它照常工作，自己会起一个 `127.0.0.1` 的 live 页面。
 **扩展也不依赖引擎的代码**：只依赖 `docs/contract.md` 里钉死的 4 个端点。
 
-所以这两半可以分别发版、分别卸载、分别替换实现——引擎今天用 Python + sherpa-onnx，
-明天换成别的语言，只要契约不变，扩展一行都不用改。
+所以这两半可以分别发版、分别卸载、分别替换。引擎现在跑在 Python + sherpa-onnx 上，换成别的语言也行：
+只要契约不变，扩展一行都不用改。
 
 ## 安装（当前阶段：unpacked）
 
@@ -82,7 +81,7 @@
 
 > 从仓库根目录加载会失败：根目录没有 `manifest.json`。这是把扩展收进子目录的代价，也是它该在的位置。
 
-## 自检（能跑，不是摆设）
+## 自检
 
 ```bash
 node tools/contract_check.js          # 对运行中的后端验 19 项契约
@@ -92,6 +91,7 @@ pwsh tools/pack.ps1                   # 打包扩展，并校验 manifest 引用
 python tools/engine-drift.py          # engine/ 与开发工作区是否漂移（退出码 1 = 有差异）
 python tools/build-dist.py --source <后端> --compress   # 发行体积实测
 python tools/metrics.py --report      # 把记下的下载/浏览历史打成一张表（数据见 docs/metrics/）
+python tools/metrics.py --write-readme   # 用那份历史重写本文件里的计数表
 ```
 
 `contract_check.js` 默认从 `..\whisper\web_live.json` 取地址，也可显式指定：
@@ -101,7 +101,7 @@ node tools/contract_check.js --url "http://127.0.0.1:47813/?token=..."
 node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 ```
 
-## 明确的边界（不做的比做的更说明问题）
+## 不做什么
 
 - **扩展不能独立工作**，也不能跑模型：MV3 service worker 不是常驻进程，没有 `child_process`，商店也禁止包内捆绑原生可执行文件。
 - **扩展抓不到 Zoom / 腾讯会议的桌面客户端**：`tabCapture` 只能抓标签页。抓全系统声音靠后端走 WASAPI loopback。
@@ -128,13 +128,32 @@ node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `extension/` → `whisper\extension` | `tools/sync-to-main.ps1` 按 SHA256 单向覆盖，**禁止反向手改** |
 | `engine/` ← 工作区 | `tools/engine-drift.py` 只比对不自动改；`--copy` 才以仓库为准覆盖回去 |
 
-扩展是「仓库为准」，引擎是「工作区为准」——因为引擎在那里跑着、带日志和临时改动，
+扩展是「仓库为准」，引擎是「工作区为准」。因为引擎在那里跑着、带日志和临时改动，
 反过来以工作区覆盖仓库会把没验证的改动直接发出去。两边都不做双向自动合并。
 
 ## 版本
 
 `extension/manifest.json` 的 `version` 是本仓库唯一版本号。改动扩展行为必须同时更新它，
 否则商店审核与「已加载版本」无法区分。契约变更见 `docs/contract.md` 的变更记录。
+
+## 计数
+
+平台只给当前值，不给历史：仓库浏览 14 天就删，Release 下载数只有累计，HF 只给近 30 天。
+所以这个仓库每天抄一次，抄进 `docs/metrics/history.csv`，下表由那份 CSV 生成，不是手写的。
+
+<!-- metrics:begin -->
+| 指标 | 最新 | 7 天前 | 变化 |
+|---|---|---|---|
+| Release 下载（累计） | 0 | — | — |
+| HF 模型下载（累计） | 0 | — | — |
+| HF 模型下载（近 30 天） | 0 | — | — |
+| 仓库浏览（近 14 天） | 0 | 0 | 0 |
+| star | 0 | — | — |
+
+<sub>数据日期 2026-11-13，由 `tools/metrics.py --write-readme` 从 [`docs/metrics/history.csv`](docs/metrics/history.csv) 生成。取不到写 —，不写 0；口径见 [`docs/metrics/README.md`](docs/metrics/README.md)。</sub>
+<!-- metrics:end -->
+
+GitHub 那几行现在是 0：仓库还是私有的，没人能访问到它，不是没人想看。
 
 ## 文档
 

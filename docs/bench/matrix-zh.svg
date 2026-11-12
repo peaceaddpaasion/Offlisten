@@ -109,8 +109,8 @@
   <g>
     <rect x="200" y="520" width="250" height="100" rx="6" fill="url(#none)" stroke="#c9d2d9"/>
     <text x="218" y="558" font-size="17" font-weight="700" fill="#7b868f">不存在</text>
-    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA 原文：TensorRT</text>
-    <text x="218" y="602" font-size="12.5" fill="#7b868f">不能在 CPU 上运行 ①</text>
+    <text x="218" y="582" font-size="12.5" fill="#7b868f">NVIDIA：无 CPU 支持，</text>
+    <text x="218" y="602" font-size="12.5" fill="#7b868f">只能在 GPU 上运行 ①</text>
 
     <rect x="460" y="520" width="250" height="100" rx="6" fill="#a8d0bd"/>
     <text x="478" y="558" font-size="17" font-weight="700" fill="#12301f">可用，一机一引擎</text>
@@ -126,7 +126,7 @@
   <!-- 注脚 -->
   <line x1="40" y1="646" x2="960" y2="646" stroke="#e2e8ec"/>
   <g font-size="11.5" fill="#5a646e">
-    <text x="40" y="670">① TensorRT 的 CPU 列不是「慢」，是「不存在」。NVIDIA 官方 FAQ 原文：Does TensorRT run on a CPU? No. TensorRT needs an NVIDIA GPU or Jetson module.</text>
+    <text x="40" y="670">① TensorRT 的 CPU 列不是「慢」，是「不存在」。NVIDIA 自家的 Triton 后端支持矩阵里，x86 与 ARM-SBSA 都只有 GPU，没有 CPU。</text>
     <text x="40" y="690">② TensorRT engine 默认只与构建它的设备兼容；hardware compatibility 仅支持 Ampere 及以后，且 JetPack / Jetson 不支持。11.3 不再支持 JetPack。</text>
     <text x="40" y="710">③ 实测 PyPI JSON：sherpa-ncnn 2.1.15 只有 cp313 win32 / win_amd64 轮子，无 win_arm64；sherpa-onnx 2.0.1 有 win_arm64。</text>
     <text x="40" y="730">④ 现有 GGUF ASR 基本是非流式（SenseVoiceSmall-GGUF = SAN-M encoder + CTC，整段输入）。它的强项是离线批量与单文件零依赖，不是实时字幕。</text>

@@ -55,8 +55,13 @@
 ```bash
 python tools/metrics.py                 # 只看，不落盘
 python tools/metrics.py --write         # 写 docs/metrics/history.csv 与徽章
-python tools/metrics.py --report        # 把已记下的历史打成 Markdown 表
+python tools/metrics.py --report        # 把已记下的历史打成 Markdown 表（全部指标）
+python tools/metrics.py --write-readme  # 只重写 README 的计数表，不联网
 ```
+
+README 里那张计数表由 `--write-readme` 生成，夹在 `<!-- metrics:begin -->` 与
+`<!-- metrics:end -->` 之间。手改那几行没有意义：下一次快照会覆盖掉，而且改完就和 CSV 对不上了。
+CI 的顺序是先采集、再生成表、最后一起提交，所以同一次提交里的数字和表必然同源。
 
 GitHub 凭证依次取 `--github-token` → `$GH_TOKEN` / `$GITHUB_TOKEN` → `git credential fill`（本机凭证管理器）。
 
