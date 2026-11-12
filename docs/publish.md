@@ -109,6 +109,33 @@ Windows runner 按 **2 倍** 计费（$0.010/min，Linux 是 $0.006）。所以�
 
 CI 的诚实边界写在 `CONTRIBUTING.md` 里：**引擎跑不起来**。runner 上没有 229 MiB 模型，也没有 WASAPI 与交互式 Windows 会话。所以引擎改动的证据只能是本机输出，PR 模板里专门留了一栏"实测记录"。
 
+### 构建放本机、CI 只做检查——这条分工的理由
+
+| | 本机 | CI |
+|---|---|---|
+| 现在做 | PyInstaller onedir + Inno Setup 出 exe | 文档引用、语法、扩展打包 |
+| 能否验证 exe | 能：真实声卡、WASAPI loopback、可交互桌面 | **不能**：无音频设备、无交互会话、无模型 |
+| 反馈速度 | 分钟级 | 排队 + 装依赖 + 打包，一轮十分钟起 |
+| 可追溯性 | 弱（"我机器上打的"） | 强（tag → commit → 二进制） |
+
+结论分三段，不要合并：
+
+1. **P1/P2 阶段在本机构建。** PyInstaller 的 hidden-import 与 DLL 收集要反复试，CI 十分钟的反馈循环没法用；
+   更要紧的是 CI 产出的 exe 只能证明"能启动"，证明不了"能转写"——绿了不等于可用。
+2. **稳定之后把构建搬进 CI，目的不是验证而是可追溯。** 加 `actions/attest-build-provenance`，
+   把 exe 的 sha256 写进 release notes，别人才能核对「这个 tag 的源码 + 这份权重 = 这个二进制」。
+   这才是"别人能修改、能复现"的实质，而不是口号。
+3. **验证永远在本机。** 这一条已写进 `CONTRIBUTING.md` 与 PR 模板的"实测记录"栏，不会因为 CI 变绿而放松。
+
+CI 真要在构建里拿权重时，来源按可靠性排：
+
+| 来源 | 能否 pin 版本 | 备注 |
+|---|---|---|
+| 自己的 HF **model repo** | ✅ revision/commit | `hf_hub_download` 带缓存与断点续传，**首选** |
+| 自己 Release 的公开直链 | ⚠️ tag 固定即固定 | 无需 token，但无分片续传 |
+| 上游 `FunAudioLLM/SenseVoiceSmall` | ❌ | 上游可能换文件，构建不可复现 |
+| HF **bucket** | ❌ 无版本 | 同名覆盖即丢旧版，CI 两次拉到的字节可能不同，**不要用** |
+
 ## 8. 未验证
 
 - 仓库切成 Public 之后的实际索引速度与搜索可见性。

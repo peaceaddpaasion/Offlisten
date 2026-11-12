@@ -220,6 +220,25 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
 
 但**权重不是我们训练的**，镜像之前先想清楚换来了什么：
 
+### 先分清 HF 上的三种资源，它们长得像但作用差很远
+
+| 类型 | URL 形态 | 有版本历史 | 计费 | 适合放 |
+|---|---|---|---|---|
+| Model repo | `huggingface.co/<owner>/<name>` | ✅ 每次上传一个 commit，可 pin revision | 公开仓库 best-effort 免费 | **权重**——sha256 才有长期意义 |
+| Storage bucket | `huggingface.co/buckets/<owner>/<name>` | ❌ 可变，同名覆盖即丢旧版 | **$12/TB/月**（公开）/ $18（私有），egress 与 CDN 含在内 | 安装包、构建产物、日志 |
+| Space | `huggingface.co/spaces/<owner>/<name>` | ✅ git | 免费 CPU 基础档 | 在线 demo |
+
+三条要注意的：
+
+1. **bucket 不能放权重。** 它没有版本控制，覆盖就丢了；`dist-manifest.json` 里的 sha256 是为了「同一份字节长期可核」，
+   bucket 保证不了这件事。放安装包可以，但文件名要自带版本号（`offlisten-0.2.1.zip`）。
+2. **bucket 是计费的。** 落地页写 $12/TB/月（公开）、$18/TB/月（私有），229 MiB 折算约 **$0.003/月**，金额可忽略；
+   但「免费额度多少、要不要绑卡」官方页面没写清，建之前先看自己账单页的额度。
+   公开 bucket 的文件可以 `https://huggingface.co/buckets/<owner>/<bucket>/resolve/<path>` 直链下载（302 到签名 CDN）；
+   **私有 bucket 的这个 URL 需要 token**，不能当用户下载入口。
+3. **Space 只能做在线 demo，而且与「不上传」冲突。** 引擎依赖 WASAPI + Windows，Space 是 Linux 容器，跑不了；
+   能跑的是「上传音频 → 出转写」的离线版。它证明的是模型能力，不是产品承诺——所以只能作为技术演示，不挂成产品入口。
+
 - 站得住的收益只有一个：上游 `FunAudioLLM/SenseVoiceSmall` 可能改分支、换文件，自己存一份 tag 化快照
   再把 sha256 写进 `dist-manifest.json`，哈希才长期可复核。
 - 代价是多一处要同步的版本，以及「用户该信哪一份」的解释成本。
