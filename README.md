@@ -102,6 +102,7 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/naming.md` | 命名与定位：候选判定、域名实测、双语口径 |
 | `docs/naming-tooling.md` | 命名工具链：能力核查、分工边界、聚类实测 |
 | `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |
+| `docs/adr-001-runtime.md` | ADR：ncnn 与 ONNX 曾并存，主线定为 ONNX（含取舍依据） |
 | `docs/publish.md` | 发布占位清单（GitHub + Release + 命名判定） |
 | `brand/README.md` | 图标设计过程（四候选、逐尺寸光栅化对比） |
 

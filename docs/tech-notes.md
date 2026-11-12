@@ -35,7 +35,11 @@
 解耦靠的是**契约而非代码共享**：`docs/contract.md` 钉死 4 个端点的字段与错误码，扩展不知道后端是 Python 还是别的。
 另一侧证据：`host_permissions` 只声明 `127.0.0.1` / `localhost`，**在设计上就没有上传路径**。
 
-### 1.4 冷门技术：ncnn —— `部分实测，核心待测`
+### 1.4 ncnn：核对过，最终没用 —— `已决策`
+
+> **先说结论：当前主线是 ONNX（venv 实测 `sherpa_onnx 2.0.0` + `onnxruntime 1.31.0`），不是 ncnn。**
+> ncnn 是 2026-10 的旧线，模型资产仍占 135 MB × 2（`official_model/`、`apk_models/`）。
+> 完整决策记录见 `docs/adr-001-runtime.md`。
 
 事实核查（PyPI JSON API 实拉，不是记忆）：
 
