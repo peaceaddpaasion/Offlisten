@@ -49,26 +49,33 @@ jobs:
   package:
     name: 打包扩展
     runs-on: windows-latest
+    # 用 powershell（Windows PowerShell 5.1）而不是 pwsh：pack.ps1 是按 5.1 写的
+    # （见文件头关于 UTF-8 BOM 的注释），并且只在 5.1 上验过。
+    # CI 应该复现作者验证过的配置，而不是换一个更"现代"但没人跑过的。
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
       - name: pack.ps1（校验 manifest 引用的每个文件）
-        shell: pwsh
+        shell: powershell
         run: ./tools/pack.ps1
       - name: 校验包内容
-        shell: pwsh
+        shell: python
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $zip = Get-ChildItem dist/*.zip | Select-Object -First 1
-          if (-not $zip) { throw "pack.ps1 没有产出 zip" }
-          $z = [IO.Compression.ZipFile]::OpenRead($zip.FullName)
-          $names = @($z.Entries | ForEach-Object { $_.FullName })
-          $z.Dispose()
-          "files: $($names.Count)"
-          $names | ForEach-Object { "  $_" }
-          if ($names -notcontains "manifest.json") { throw "包内缺 manifest.json" }
-          if (@($names | Where-Object { $_ -like "*.svg" }).Count -gt 0) {
-            throw "SVG 源文件混进了发行包：只发 PNG"
-          }
+          import glob, sys, zipfile
+          zips = glob.glob("dist/*.zip")
+          if not zips:
+              sys.exit("pack.ps1 没有产出 zip")
+          with zipfile.ZipFile(zips[0]) as z:
+              names = z.namelist()
+          print("files: %d" % len(names))
+          for n in names:
+              print("  " + n)
+          if "manifest.json" not in names:
+              sys.exit("包内缺 manifest.json")
+          if any(n.lower().endswith(".svg") for n in names):
+              sys.exit("SVG 源文件混进了发行包：只发 PNG")
       - uses: actions/upload-artifact@v7
         with:
           name: extension-${{ github.sha }}
