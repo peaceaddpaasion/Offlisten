@@ -5,7 +5,7 @@
 
 ## 一、先把体积算清楚
 
-全部数字来自 `python scripts/build-dist.py --source <后端项目> --stage dist/stage --compress`（P0 产物，可当场复跑），不是估算：
+全部数字来自 `python tools/build-dist.py --source <后端项目> --stage dist/stage --compress`（P0 产物，可当场复跑），不是估算：
 
 | 组成 | 原始 | deflate 后 | 是否必需 |
 |---|---|---|---|
@@ -30,7 +30,7 @@
 两条立刻要执行的结论：
 
 1. **只分发 int8**。`model.onnx`（937,617,178 B）、`encoder-...onnx`（260,642,850 B）与 `*.tar.bz2` 都是开发期产物。
-   代码本身就只打开 int8（`pc_transcriber.py:84` 硬编码 `model.int8.onnx`），fp32 从来没被读过。
+   代码本身就只打开 int8（`engine/pc_transcriber.py:84` 硬编码 `model.int8.onnx`），fp32 从来没被读过。
 2. **翻译必须做成可选组件下载**。带上 Argos 后安装包从 190 MiB 涨到 1 GB 级，这是转化率杀手；
    而翻译本来就是「有更好、没有也能用」的能力。
 
@@ -147,7 +147,7 @@ sherpa-onnx 官方有 WASM 构建，社区也已有 npm 封装（`speech-asr`，
 
 | 阶段 | 做什么 | 验收 |
 |---|---|---|
-| P0（**已完成**） | 模型瘦身：`scripts/build-dist.py` 只取 int8，产出 `dist-manifest.json`（逐文件 sha256），实测发行体积 | 实测：Standard 档 229.1 MiB → 打包 153.4 MiB；运行时 88.3 → 29.6 MiB；安装包合计 ≈190 MiB |
+| P0（**已完成**） | 模型瘦身：`tools/build-dist.py` 只取 int8，产出 `dist-manifest.json`（逐文件 sha256），实测发行体积 | 实测：Standard 档 229.1 MiB → 打包 153.4 MiB；运行时 88.3 → 29.6 MiB；安装包合计 ≈190 MiB |
 | P1 | PyInstaller **onedir** 打包（不用 onefile：每次启动解压 190 MiB，启动要 5-10 秒） | 干净机器双击可跑，首帧转写延迟无回退；实测安装目录体积与冷启动耗时 |
 | P2 | Inno Setup 安装器：解压、写卸载项、可选写 NM 注册表、首次运行引导、按 sha256 跳过未变模型 | 虚拟机全新安装 → 托盘起来 → live 页可开；**升级路径实测：只换 exe 时下载 <20 MiB** |
 | P3 | NM host（只做桥：`discover` 返回 `{url, token}`，`launch` 拉起引擎）；扩展加 `nativeMessaging` 权限与降级逻辑 | 扩展零手粘连上；NM 不可用时回退到手粘 |

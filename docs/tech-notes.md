@@ -78,8 +78,8 @@
 ## 3. 但 MSIX 有一个必须先改的坑 —— `代码里已确认`
 
 ```python
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # web_live.py:71
-ARCHIVE_DIR = os.path.join(BASE_DIR, "meetings")        # web_live.py:78
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # engine/web_live.py:71
+ARCHIVE_DIR = os.path.join(BASE_DIR, "meetings")        # engine/web_live.py:78
 ```
 
 存档目录挂在**程序目录**下。打成 MSIX 后：

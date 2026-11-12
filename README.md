@@ -5,7 +5,7 @@
 > Offlisten — 100% offline speech-to-text for meetings and lectures.
 > No account, no cloud, no telemetry. A 12.5 KB browser extension plus a local ASR engine.
 
-当前状态：**本地可用**。扩展 `v0.2.1`，后端在同一台机器上的另一个仓库（纯 Python，无云依赖）。
+当前状态：**本地可用**。引擎 `4,160` 行 Python（`engine/`），扩展 `v0.2.1`（`extension/`，12.5 KB）。两者同仓库，靠契约解耦。
 
 ---
 
@@ -50,38 +50,49 @@
 "本地优先"是**策略**，可以随时改成上传；"离线"是**可验证的承诺**——断网演示十秒就能证伪。
 所以对外只说后者，代码里也只做后者：没有上传路径，`host_permissions` 只声明 `127.0.0.1` / `localhost`。
 
-## 架构：两个仓库，一条契约
+## 架构：两个可独立运行的半边，一条契约
 
 ```
 录匣 Offlisten
-├─ 浏览器扩展（本仓库）      MV3，只做两件事：读本机转写、遥控本机引擎
-│     └─ 唯一发请求的地方是 service worker（popup 不直接 fetch）
-└─ 本地引擎（另一个仓库）     ASR / 会议存档 / SSE / 导出，纯 Python
+├─ engine/       Python 引擎（4,160 行）ASR / 采集 / 存档 / SSE / 导出 / 悬浮字幕
+│                pc_transcriber.py  web_live.py  live_core.py  win32_overlay.py  overlay.py
+│                web_live/（live·history·meeting 页面）  tools/  acceptance/
+├─ extension/    MV3 扩展（8 文件 / 12.5 KB）只做两件事：读本机转写、遥控引擎
+│                manifest.json  popup.html  popup.js  service_worker.js  icons/
+├─ docs/         契约、分发、ADR、工作稿、负结果册、可用性矩阵
+└─ tools/        打包、契约自检、发行清单、漂移检查
 ```
 
-两者**不是代码耦合，是契约耦合**：`docs/contract.md` 钉死 `/health`、`/transcript.json`、
-`/api/control/state|action` 的字段、错误码与鉴权方式。后端可随时改实现，但改端点必须同步改契约。
+**引擎不依赖扩展**：拔掉扩展它照常工作，自己会起一个 `127.0.0.1` 的 live 页面。
+**扩展也不依赖引擎的代码**：只依赖 `docs/contract.md` 里钉死的 4 个端点。
+
+所以这两半可以分别发版、分别卸载、分别替换实现——引擎今天用 Python + sherpa-onnx，
+明天换成别的语言，只要契约不变，扩展一行都不用改。
 
 ## 安装（当前阶段：unpacked）
 
 1. 启动本地后端，控制台会打印一行带 token 的完整地址。
 2. 打开 `chrome://extensions` 或 `edge://extensions`，开启「开发者模式」。
-3. 「加载已解压的扩展程序」→ 选本仓库根目录（含 `manifest.json` 那一层）。
+3. 「加载已解压的扩展程序」→ 选本仓库的 **`extension/`** 目录（含 `manifest.json` 那一层，不是仓库根目录）。
 4. 点扩展图标，把那行完整地址粘进输入框 → 「保存并连接」。
+
+> 从仓库根目录加载会失败：根目录没有 `manifest.json`。这是把扩展收进子目录的代价，也是它该在的位置。
 
 ## 自检（能跑，不是摆设）
 
 ```bash
-node scripts/contract_check.js        # 对运行中的后端验 19 项契约
-python scripts/name_cluster.py        # 候选名聚类与"打错就串"检测（纯标准库、离线）
-pwsh scripts/pack.ps1                 # 打包，并校验 manifest 引用的文件真实存在
+node tools/contract_check.js          # 对运行中的后端验 19 项契约
+python tools/name_cluster.py          # 候选名聚类与"打错就串"检测（纯标准库、离线）
+pwsh tools/pack.ps1                   # 打包扩展，并校验 manifest 引用的文件真实存在
+python tools/engine-drift.py          # engine/ 与开发工作区是否漂移（退出码 1 = 有差异）
+python tools/build-dist.py --source <后端> --compress   # 发行体积实测
 ```
 
 `contract_check.js` 默认从 `..\whisper\web_live.json` 取地址，也可显式指定：
 
 ```bash
-node scripts/contract_check.js --url "http://127.0.0.1:47813/?token=..."
-node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
+node tools/contract_check.js --url "http://127.0.0.1:47813/?token=..."
+node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 ```
 
 ## 明确的边界（不做的比做的更说明问题）
@@ -102,20 +113,29 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 - 中文名 `录匣` 是造词，零搜索量（这是代价，不是红利）。
 - Lite 档的 14M 中文模型对术语、口音、远场会掉字，且不出标点。
 
-## 两处代码，单向同步
+## 两处代码与工作区的关系
 
-本仓库是扩展的事实源；主项目里的 `extension/` 只是内测加载副本，由 `scripts/sync-to-main.ps1`
-按 SHA256 覆盖过去，**禁止反向手改**（改了下次同步就被冲掉）。
+开发在 `D:\projects\whisper` 里跑，仓库里的是**发布快照**。两边会漂移，所以两边各有一道闸：
+
+| 方向 | 机制 |
+|---|---|
+| `extension/` → `whisper\extension` | `tools/sync-to-main.ps1` 按 SHA256 单向覆盖，**禁止反向手改** |
+| `engine/` ← 工作区 | `tools/engine-drift.py` 只比对不自动改；`--copy` 才以仓库为准覆盖回去 |
+
+扩展是「仓库为准」，引擎是「工作区为准」——因为引擎在那里跑着、带日志和临时改动，
+反过来以工作区覆盖仓库会把没验证的改动直接发出去。两边都不做双向自动合并。
 
 ## 版本
 
-`manifest.json` 的 `version` 是本仓库唯一版本号。改动扩展行为必须同时更新它，
+`extension/manifest.json` 的 `version` 是本仓库唯一版本号。改动扩展行为必须同时更新它，
 否则商店审核与「已加载版本」无法区分。契约变更见 `docs/contract.md` 的变更记录。
 
 ## 文档
 
 | 文件 | 内容 |
 |---|---|
+| `engine/README.md` | **引擎**：两条管线的区别、模块职责、VAD 门限为什么不是常数、怎么跑起来 |
+| `extension/` | MV3 扩展本体（8 文件 / 12.5 KB）；加载时选这个目录 |
 | `docs/paper.md` | **工作稿**：可分发空集测绘，含证据分级、效度威胁、可证伪条件 |
 | `docs/negative-results.md` | **负结果册**：9 条放弃/改法的路，每条附判定与证据路径 |
 | `docs/bench/README.md` | 可用性矩阵成品：12 格逐格原因、证据分级、决策树、PR 模板（图见 `matrix-zh` / `matrix-en` 两套） |
@@ -124,12 +144,12 @@ node scripts/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/contract.md` | 扩展与后端之间的 API 契约（唯一接口约定） |
 | `docs/distribution.md` | 后端分发方案：**实测体积账**、三条路线、P0→P5 |
 | `dist-manifest.json` | 发行清单：逐文件 `sha256` + 体积 + 被故意排除的文件及原因 |
-| `scripts/build-dist.py` | 生成上表的脚本，`--compress` 可实测安装包下载体积 |
+| `tools/build-dist.py` | 生成上表的脚本，`--compress` 可实测安装包下载体积 |
 | `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |
 | `docs/naming.md` | 命名与定位：候选判定、域名实测、双语口径 |
 | `docs/naming-tooling.md` | 命名工具链：能力核查、分工边界、聚类实测 |
 | `docs/publish.md` | 发布占位清单（GitHub + Release + 命名判定） |
-| `icons/README.md` | 图标源文件、配色，与逐尺寸光栅化的再生方法 |
+| `extension/icons/README.md` | 图标源文件、配色，与逐尺寸光栅化的再生方法 |
 | `CITATION.cff` | 引用信息（GitHub 侧栏会显示「Cite this repository」） |
 
 ## License

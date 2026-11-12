@@ -13,7 +13,7 @@
 | 2026-10-24 | 分析对象（厂商 APK）走的是 **sherpa-ncnn**（模型 `xb-zh-en-v3`，ncnn + Vulkan/GPU，仅 arm64-v8a） | `ASR升级评估报告.md` §一、`.workbuddy/memory/2026-10-24.md` |
 | 2026-10-25 | **ncnn 在 Android 真机上跑过**：改造 APK（换 `zipformer-libri-giga-70M`）重签后装机成功 | `.workbuddy/memory/2026-10-25.md`；`apk_out_*`、`official_model/`、`apk_models/` 仍在盘上 |
 | 2026-11-06 | 做过一个 **ncnn-only 迁移包**，把 `pc_models/` 里的 onnx 模型剔除（SenseVoice / silero_vad / zipformer-en-onnx） | `.workbuddy/memory/2026-11-06.md` |
-| 现在 | **主线是 ONNX** | `pc_transcriber.py:37` `import sherpa_onnx`；venv 实测 `sherpa_onnx 2.0.0` + `onnxruntime 1.31.0` |
+| 现在 | **主线是 ONNX** | `engine/pc_transcriber.py:37` `import sherpa_onnx`；venv 实测 `sherpa_onnx 2.0.0` + `onnxruntime 1.31.0` |
 
 ncnn 资产仍然在盘上：`official_model/` 135 MB、`apk_models/` 135 MB。所以"有没有 ncnn"这个问题的答案是：
 **资产有、Android 上跑过、PC 主线不用。**

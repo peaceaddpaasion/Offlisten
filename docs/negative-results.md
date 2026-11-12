@@ -19,14 +19,14 @@
 - **假设**：Levenshtein 距离能识别"打错就串"的高风险名字对。
 - **结果**：英文侧有效；中文侧标出的 20 组里绝大多数无意义——**两字中文词的编辑距离恒为 2**，判据退化成"只要不等就危险"。
 - **判定**：`改法`。中文改用**共用字检测 + 词形**，英文仍走编辑距离；改后只剩 3 组真风险。
-- **证据**：`scripts/name_cluster.py` 的 `form_sim()` 与风险判定分支。
+- **证据**：`tools/name_cluster.py` 的 `form_sim()` 与风险判定分支。
 
 ## N-03 契约凭记忆写，编出一个不存在的枚举值 —— 改法
 
 - **假设**：`/transcript.json` 的 `kind` 有 `asr` 这个值。
-- **结果**：真实后端只发 `final` / `trans`。`scripts/contract_check.js` 19 项检查里有一项一开始是对着错文档写的。
+- **结果**：真实后端只发 `final` / `trans`。`tools/contract_check.js` 19 项检查里有一项一开始是对着错文档写的。
 - **判定**：`改法`。契约必须以**一次真实响应**为准，检查脚本不能从文档反推。
-- **证据**：`docs/contract.md`、`scripts/contract_check.js`。
+- **证据**：`docs/contract.md`、`tools/contract_check.js`。
 
 ## N-04 扩展 ID 在 unpacked 下无法稳定 —— 未解
 

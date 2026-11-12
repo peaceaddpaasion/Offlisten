@@ -19,7 +19,7 @@
 | `zipformer`（英文低延迟档） | zipformer-en-2023-06-26 int8 encoder | **66.9 MB**（整模型 ≈ 70MB） | **流式**，边说边出字 | en only |
 | （新增候选） | zipformer-zh-14M-2023-02-23 int8 三件套 | **25.3 MB**（enc 21.6 + dec 1.89 + join 1.8） | 流式 | zh only |
 
-代码实证：`pc_transcriber.py:1178` 按 `--engine` 二选一建识别器，默认 `sensevoice`（第 1303 行）；
+代码实证：`engine/pc_transcriber.py:1178` 按 `--engine` 二选一建识别器，默认 `sensevoice`（第 1303 行）；
 `build_recognizer()` 走 zipformer 在线识别器，`build_offline_sv()` 走 SenseVoice 离线识别器。
 
 **结论：**
@@ -178,7 +178,7 @@ IDM 那种分包里，名字承担三件不同的事，混在一起就会得到�
 
 ### 6.5 已落地
 
-`manifest.json` / `popup.html` / `popup.js` 的显示名已改为 Offlisten（**v0.2.0**），真机回归 **10/10**，扩展 ID 保持 `hbfbckcf…` 未变（ID 由加载路径派生，与 name 无关）。
+`extension/manifest.json` / `popup.html` / `popup.js` 的显示名已改为 Offlisten（**v0.2.0**），真机回归 **10/10**，扩展 ID 保持 `hbfbckcf…` 未变（ID 由加载路径派生，与 name 无关）。
 **只改显示名，没动 `meetings/` 与 `web_live.json`** —— 历史会议不受影响。
 
 ### 6.6 还没做

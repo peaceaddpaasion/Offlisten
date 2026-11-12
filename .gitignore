@@ -1,7 +1,18 @@
+# 发行产物：二进制走 Release 附件，不进历史
 dist/
 *.zip
+
+# 引擎运行期目录（模型 229 MB 起，绝不入库）
+engine/pc_models/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# 工具临时文件
 node_modules/
+.edge/
 .DS_Store
 Thumbs.db
 *.log
-.edge/

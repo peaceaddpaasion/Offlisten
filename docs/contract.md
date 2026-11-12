@@ -5,7 +5,7 @@
 
 ## 传输与鉴权
 
-- 只允许 `http://127.0.0.1:<port>` 与 `http://localhost:<port>`，`manifest.json` 的
+- 只允许 `http://127.0.0.1:<port>` 与 `http://localhost:<port>`，`extension/manifest.json` 的
   `host_permissions` 也只声明这两个 host。
 - 所有请求由 **service worker**（扩展自身 origin）发出，不使用 content script：
   页面上下文发起的本机请求会撞 CORS、混合内容和 Local Network Access 限制。
