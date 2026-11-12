@@ -22,7 +22,7 @@
 
 本机未装 `gh`，所以只能用网页。切完之后 `api.github.com/repos/peaceaddpaasion/Offlisten` 会从 404 变成 200，可用这条来验证，不必靠肉眼。
 
-## 2. 建完立刻做的四件事（占位的实际价值在这里）
+## 2. 建完立刻做的五件事（占位的实际价值在这里）
 
 1. **About 栏**填这句（网页建仓时已写过，别在覆盖时丢掉）：
 
@@ -35,6 +35,9 @@
 3. **发第一个 Release**，附上 `dist/whisper-ext-0.2.1.zip`。Release 页是"能下载"的证据。
    > `dist/` 和 `*.zip` 已在 `.gitignore` 里，**不要提交进仓库**——二进制走 Release 附件，再单独 `git commit` 会让仓库历史变脏。
 4. **README 首屏保持三行以内**：一句承诺 + 四个数字。技术面试官只看前 15 秒。
+5. **确认数据账本开始记数**。`Metrics` 工作流每天 03:17 UTC 快照一次，私有期间全是 0；
+   转公开后第一周去看 `docs/metrics/history.csv` 是否出现非零段——那是「真的有人来了」的第一个客观证据。
+   同时可以把 `docs/metrics/README.md` 末尾的三个 shields 徽章解引到 README（私有期间指向的 raw 链接会 404）。
 
 ## 3. 为什么用 MIT 而不是 AGPL
 

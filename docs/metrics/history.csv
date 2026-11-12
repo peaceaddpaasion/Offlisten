@@ -1,0 +1,67 @@
+date,source,metric,value,note
+2026-10-30,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-30,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-30,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-30,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-31,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-31,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-31,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-10-31,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-01,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-01,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-01,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-01,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-02,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-02,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-02,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-02,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-03,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-03,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-03,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-03,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-04,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-04,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-04,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-04,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-05,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-05,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-05,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-05,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-06,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-06,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-06,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-06,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-07,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-07,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-07,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-07,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-08,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-08,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-08,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-08,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-09,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-09,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-09,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-09,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-10,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-10,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-10,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-10,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-11,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-11,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-11,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-11,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-12,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-12,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-12,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-12,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-13,github,forks,0,
+2026-11-13,github,open_issues,0,
+2026-11-13,github,stars,0,
+2026-11-13,github,watchers,0,
+2026-11-13,github_release,downloads_total,0,0 个 release
+2026-11-13,hf_model,downloads_30d,0,平台口径：近 30 天
+2026-11-13,hf_model,downloads_all_time,0,
+2026-11-13,hf_model,likes,0,
+2026-11-13,hf_space,likes,0,
+2026-11-13,hf_space,views,,static Space 不提供浏览量；/api/spaces/<id>/analytics 返回 404

@@ -24,6 +24,7 @@ That is the proportion this small project keeps: **a product may give one answer
 
 - How that map was built, and why it can be falsified → [`docs/paper.md`](docs/paper.md) (working paper)
 - Which roads were tried and abandoned → [`docs/negative-results.md`](docs/negative-results.md) (9 entries, each with a verdict and an evidence path)
+- How often it was opened, how often it was downloaded → [`docs/metrics/README.md`](docs/metrics/README.md) (the platforms keep 14 days; this repo copies it daily)
 
 ---
 
@@ -58,8 +59,8 @@ Offlisten
 │                web_live/ (live · history · meeting pages)  tools/  acceptance/
 ├─ extension/    MV3 extension (8 files / 12.5 KB) — reads local transcripts, drives the engine
 │                manifest.json  popup.html  popup.js  service_worker.js  icons/
-├─ docs/         contract, distribution, ADRs, working paper, negative results, availability matrix
-├─ tools/        packaging, contract check, release manifest, drift check, HF push
+├─ docs/         contract, distribution, ADRs, working paper, negative results, availability matrix, metrics ledger
+├─ tools/        packaging, contract check, release manifest, drift check, HF push, metrics snapshot
 └─ space/        Hugging Face Space demo (upload → transcript + RTF), no WASAPI required
 ```
 
@@ -86,6 +87,7 @@ python tools/name_cluster.py          # candidate-name clustering, typo-collisio
 pwsh tools/pack.ps1                   # package the extension, verify every file manifest.json references
 python tools/engine-drift.py          # engine/ vs working tree drift (exit 1 = drift)
 python tools/build-dist.py --source <engine> --compress   # measure the real install size
+python tools/metrics.py --report      # turn the recorded download/traffic history into a table (see docs/metrics/)
 ```
 
 `contract_check.js` reads the URL from `..\whisper\web_live.json` by default, or takes it explicitly:
@@ -140,6 +142,7 @@ The extension resolves to the repository, the engine resolves to the working tre
 | `docs/distribution.md` | Engine distribution: **measured size accounting**, three routes, P0→P5, hard limits of main / Release / HF |
 | `dist-manifest.json` | Release manifest: per-file `sha256` + size + files deliberately excluded and why |
 | `tools/build-dist.py` | Generates the above; `--compress` measures the real download size |
+| `docs/metrics/README.md` | **Metrics ledger**: what each platform refuses to keep, the three value states (number / 0 / blank), and how the daily snapshot works |
 | `docs/tech-notes.md` | Technical notes: size tiers, the ncnn trade-off, MSIX constraints |
 | `docs/naming.md` | Naming and positioning: candidate verdicts, domain measurements, bilingual conventions |
 | `docs/naming-tooling.md` | Naming toolchain: capability audit, division of labour, clustering results |

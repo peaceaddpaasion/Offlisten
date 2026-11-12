@@ -27,6 +27,7 @@
 
 - 想知道那张图怎么来的、凭什么能证伪 → [`docs/paper.md`](docs/paper.md)（工作稿）
 - 想看哪些路我们试过并放弃了 → [`docs/negative-results.md`](docs/negative-results.md)（9 条，含放弃理由与证据）
+- 想知道它被打开了多少次、下载了多少次 → [`docs/metrics/README.md`](docs/metrics/README.md)（平台只留 14 天，这里每天自己抄）
 
 ---
 
@@ -61,8 +62,8 @@
 │                web_live/（live·history·meeting 页面）  tools/  acceptance/
 ├─ extension/    MV3 扩展（8 文件 / 12.5 KB）只做两件事：读本机转写、遥控引擎
 │                manifest.json  popup.html  popup.js  service_worker.js  icons/
-├─ docs/         契约、分发、ADR、工作稿、负结果册、可用性矩阵
-├─ tools/        打包、契约自检、发行清单、漂移检查、HF 推送
+├─ docs/         契约、分发、ADR、工作稿、负结果册、可用性矩阵、数据账本
+├─ tools/        打包、契约自检、发行清单、漂移检查、HF 推送、计数快照
 └─ space/        Hugging Face Space 在线演示（上传音频 → 转写 + RTF），不依赖 WASAPI
 ```
 
@@ -90,6 +91,7 @@ python tools/name_cluster.py          # 候选名聚类与"打错就串"检测�
 pwsh tools/pack.ps1                   # 打包扩展，并校验 manifest 引用的文件真实存在
 python tools/engine-drift.py          # engine/ 与开发工作区是否漂移（退出码 1 = 有差异）
 python tools/build-dist.py --source <后端> --compress   # 发行体积实测
+python tools/metrics.py --report      # 把记下的下载/浏览历史打成一张表（数据见 docs/metrics/）
 ```
 
 `contract_check.js` 默认从 `..\whisper\web_live.json` 取地址，也可显式指定：
@@ -149,6 +151,7 @@ node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/distribution.md` | 后端分发：**实测体积账**、三条路线、P0→P5、main/Release/HF 三条通道的硬上限 |
 | `dist-manifest.json` | 发行清单：逐文件 `sha256` + 体积 + 被故意排除的文件及原因 |
 | `tools/build-dist.py` | 生成上表的脚本，`--compress` 可实测安装包下载体积 |
+| `docs/metrics/README.md` | **数据账本**：平台各自留不住什么、三种值状态（数字 / 0 / 空）、每日快照怎么跑 |
 | `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |
 | `docs/naming.md` | 命名与定位：候选判定、域名实测、双语口径 |
 | `docs/naming-tooling.md` | 命名工具链：能力核查、分工边界、聚类实测 |
