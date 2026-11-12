@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>本地转写 · 页面助手</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    width: 370px;
+    margin: 0;
+    padding: 16px;
+    background: #f5f6f7;
+    color: #1c2126;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  h1 { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #3c4650; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #a33a32; display: inline-block; }
+  .dot.ok { background: #276f47; }
+  .note { margin: 12px 0 14px; font-size: 13px; color: #3c4650; }
+  label { display: block; font-size: 13px; margin-bottom: 4px; }
+  input {
+    width: 100%;
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 8px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+  }
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  button {
+    font: inherit;
+    font-size: 13px;
+    padding: 5px 10px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+    cursor: pointer;
+  }
+  button:hover { background: #e9edf0; }
+  .hint { margin: 8px 0 12px; font-size: 13px; color: #3c4650; min-height: 20px; }
+  .control { margin: 12px 0 0; padding: 10px; border: 1px solid #d3d8dd; background: #ffffff; }
+  .control-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .control h2 { margin: 0; font-size: 14px; font-weight: 600; }
+  #controlMode { font-size: 13px; color: #3c4650; }
+  .control .tools { margin: 8px 0 0; }
+  .control label { display: inline; margin: 0; font-size: 13px; }
+  select {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 6px;
+    border: 1px solid #bcc4cc;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #1c2126;
+  }
+  #controlHint { margin: 8px 0 0; min-height: 0; }
+  #readonlyNote { margin: 8px 0 0; }
+  #run.running { background: #f3e3e1; border-color: #b4796f; }
+  .line { padding: 5px 0; border-bottom: 1px solid #e3e7eb; font-size: 13px; }
+  .line .ts { color: #4c5863; margin-right: 6px; }
+  footer {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 1px solid #d3d8dd;
+    margin-top: 12px;
+    padding-top: 8px;
+    font-size: 13px;
+    color: #3c4650;
+  }
+  #count { font-weight: 600; color: #1c2126; white-space: nowrap; }
+</style>
+</head>
+<body>
+<h1>本地转写 · 页面助手</h1>
+<div class="status"><span class="dot" id="dot"></span><span id="status">未配置地址</span></div>
+
+<p class="note">这个扩展只读取本机 127.0.0.1 的文本，不调用模型，也不把内容发到任何服务器。要交给 AI 处理，请用你已有的浏览器 AI 插件读取 live 页，或复制全文。</p>
+
+<label for="url">本机服务地址</label>
+<input id="url" type="text" placeholder="http://127.0.0.1:47813/?token=..." autocomplete="off">
+
+<div class="tools">
+  <button id="save" type="button">保存并连接</button>
+  <button id="open" type="button">打开 live 页</button>
+  <button id="copy" type="button">复制全文</button>
+  <button id="refresh" type="button">刷新</button>
+</div>
+
+<section class="control" id="control" hidden>
+  <div class="control-head">
+    <h2>转写控制</h2>
+    <span id="controlMode">读取中</span>
+  </div>
+  <div id="controlBody" hidden>
+    <div class="tools">
+      <button id="run" type="button">开始转写</button>
+      <label for="engineSel">引擎</label>
+      <select id="engineSel">
+        <option value="sensevoice">SenseVoice（中英双语）</option>
+        <option value="zipformer">Zipformer（英文低延迟）</option>
+      </select>
+      <label for="sourceSel">音源</label>
+      <select id="sourceSel">
+        <option value="loopback">系统声音</option>
+        <option value="mic">麦克风</option>
+      </select>
+      <label><input id="translateChk" type="checkbox"> 译文</label>
+    </div>
+    <p class="hint" id="controlHint"></p>
+  </div>
+  <p class="note" id="readonlyNote" hidden></p>
+</section>
+
+<p class="hint" id="hint"></p>
+<div id="recent"></div>
+
+<footer>
+  <span id="count">0 段</span>
+  <span>译文由 Argos 离线机器翻译生成，不是原文。</span>
+</footer>
+
+<script src="popup.js"></script>
+</body>
+</html>
