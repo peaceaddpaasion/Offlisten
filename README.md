@@ -145,7 +145,7 @@ node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/research-plan.md` | 长期展望：端侧 ASR 运行时可用性地图（维度定义、最小实验集、社区形态） |
 | `docs/adr-001-runtime.md` | ADR：ncnn 与 ONNX 曾并存，主线定为 ONNX（含取舍依据，部分理由已作废并标注） |
 | `docs/contract.md` | 扩展与后端之间的 API 契约（唯一接口约定） |
-| `docs/distribution.md` | 后端分发方案：**实测体积账**、三条路线、P0→P5 |
+| `docs/distribution.md` | 后端分发：**实测体积账**、三条路线、P0→P5、main/Release/HF 三条通道的硬上限 |
 | `dist-manifest.json` | 发行清单：逐文件 `sha256` + 体积 + 被故意排除的文件及原因 |
 | `tools/build-dist.py` | 生成上表的脚本，`--compress` 可实测安装包下载体积 |
 | `docs/tech-notes.md` | 技术素材与交付路径：体积档、ncnn 权衡、MSIX 约束 |

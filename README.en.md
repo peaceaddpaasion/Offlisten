@@ -136,7 +136,7 @@ The extension resolves to the repository, the engine resolves to the working tre
 | `docs/research-plan.md` | Long-term outlook: on-device ASR runtime availability map (dimensions, minimal experiment set, community form) |
 | `docs/adr-001-runtime.md` | ADR: ncnn and ONNX coexisted, mainline fixed on ONNX (one reason struck through and annotated) |
 | `docs/contract.md` | The API contract between extension and engine — the only interface agreement |
-| `docs/distribution.md` | Engine distribution: **measured size accounting**, three routes, P0→P5 |
+| `docs/distribution.md` | Engine distribution: **measured size accounting**, three routes, P0→P5, hard limits of main / Release / HF |
 | `dist-manifest.json` | Release manifest: per-file `sha256` + size + files deliberately excluded and why |
 | `tools/build-dist.py` | Generates the above; `--compress` measures the real download size |
 | `docs/tech-notes.md` | Technical notes: size tiers, the ncnn trade-off, MSIX constraints |

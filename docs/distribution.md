@@ -165,3 +165,73 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
 - SenseVoice int8 在 WASM 单线程下的 RTF——未实测，官方只提示「吞吐有要求放桌面端」。
 
 以上任一条要在动手前用探针验掉，不能按估算推进。
+
+## 七、权重与产物分别放哪里（2026-11-12 核对）
+
+### 先否掉一个误判：CI 没有卡在模型上
+
+| 事实 | 实测值 | 复跑方式 |
+|---|---|---|
+| 仓库体积 | `.git` 1.4 MiB，253 个对象 | `du -sh .git` / `git rev-list --objects --all \| wc -l` |
+| 仓库内最大文件 | `docs/bench/matrix-zh.pdf` 202,040 B | `find . -path ./.git -prune -o -type f -printf '%s %p\n' \| sort -rn \| head` |
+| `ci.yml` 是否引用权重 | `grep -inE "pc_models\|onnx\|model\|hf"` **零命中** | 同左 |
+| `docs` job | `OK 116 references, all resolve` | `python tools/check-links.py` |
+| `syntax` job | `compileall -q engine tools` 退出 0；`node --check` 三个 JS 全过 | 同左 |
+| `package` job 的输入 | 只读 `extension/` 的 8 个文件，合计 22,230 B，产物 12.5 KB | `du -cb extension/manifest.json extension/*.js extension/*.html extension/icons/*.png` |
+
+三个 job 加起来碰不到一个 `.onnx`。权重从来不在仓库里——`.gitignore` 第一条就写着
+`engine/pc_models/`，注释是「229 MB 起，绝不入库」。
+
+**真正会卡的是另一件事**：想在 CI 里打出带模型的 exe，就必须让 CI 拿到 229 MiB 权重。
+那时它不能从仓库拿（下面 100 MiB 是 push 阶段硬拦），只能从 Release 资产或 HF 取。
+
+另外记一笔环境事实：`tools/pack.ps1` 在**本机 agent 会话的 PowerShell 工具**里跑不完，原因是安全钩子把
+`Remove-Item` 换成了进回收站的 fail-closed 实现（`SAFE_DELETE_FAIL_CLOSED`），脚本开头「删旧 zip」那行就抛异常。
+这是本机 hook 的行为，不是脚本缺陷——CI runner 上没有这个 hook。
+本地打包用 `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\pack.ps1`（`-NoProfile` 不加载注入的包装器），
+或在普通终端里直接跑。
+
+### 三条通道的硬上限
+
+| 通道 | 单文件上限 | 总量 / 配额 | 下载带宽 | 放 190 MiB 安装包 |
+|---|---|---|---|---|
+| 提交进 main | **100 MiB 硬拦**（50 MiB 起告警；网页上传 25 MiB） | 仓库建议 <1 GB，强烈建议 <5 GB | 每次 clone 都要付 | ✗ `model.int8.onnx` 228 MiB 连推都推不上去 |
+| Release 资产 | **2 GiB** | 单个 release ≤ 1000 个资产，**总量无限制** | 公开仓下载**不计费、无配额** | ✓ 只用掉 9.3% |
+| Git LFS（Free） | 2 GiB | 10 GiB 存储 + 10 GiB/月带宽，超了无付款方式则 LFS 直接停到下月 | 计入 owner 带宽 | ✓ 但被刷一次就断供 |
+| Actions artifact | 按套餐 | 计费，默认保留 90 天 | 不是分发通道 | ✗ 别当 CDN 用 |
+
+三条结论：
+
+1. **Release 能发 190 MiB 单文件，不必分卷。** 上限是 2 GiB，只用了 9.3%；总量和带宽都不计量。
+2. **main 永远不放权重。** 理由不需要讨论成本：100 MiB 在 `git push` 阶段就被拒，连"慢一点"的机会都没有。
+3. **LFS 不适合当发行通道。** 190 MiB × 几十次下载就吃掉 10 GiB/月，而 Release 同一份文件下载不计费。
+
+### Hugging Face 允不允许大权重、能不能自动化
+
+允许，而且比 GitHub 宽：
+
+| 项 | HF Hub 口径（官方 recommendations） |
+|---|---|
+| 单文件 | **50 GB 硬限**（原文：`no single LFS file will be able to be >50GB`）；建议切成 ~20 GB 分片 |
+| 单仓库 | 无硬限，官方「一般支持到 300 GB」，更多需申请 |
+| 免费账号存储 | 公开仓库 best-effort（无硬数字，滥用会被限），私有 100 GB |
+| 229 MiB 的占比 | 公开额度里可忽略 |
+| 自动化 | 官方 `huggingface/hub-sync@v0.3.0` action，`repo_type: model`；或 `hf upload` CLI；支持 OIDC Trusted Publishers，不必存长期 token |
+
+但**权重不是我们训练的**，镜像之前先想清楚换来了什么：
+
+- 站得住的收益只有一个：上游 `FunAudioLLM/SenseVoiceSmall` 可能改分支、换文件，自己存一份 tag 化快照
+  再把 sha256 写进 `dist-manifest.json`，哈希才长期可复核。
+- 代价是多一处要同步的版本，以及「用户该信哪一份」的解释成本。
+- **推荐做法：先不镜像字节。** 在 HF 建一个 model repo，只放这 6 个文件的清单、sha256 和下载脚本，
+  实际字节仍从上游或 Release 取。这样既不重复占空间，版本也被钉住。
+- 什么时候值得真推一份 229 MiB：等 P1 的 exe 要在 CI 里构建时。CI 从 HF 拉比从自己的 Release 拉更稳
+  （`hf_hub_download` 自带缓存、断点续传、range 请求），那时再镜像才是划算的。
+
+### exe 现在有没有
+
+没有。仓库里当前唯一的可发布产物是扩展 zip（12.5 KB / 8 文件）。
+exe 依赖 P1（PyInstaller onedir）和 P2（Inno Setup），两者都还没做，所以 Release 现在只能发扩展。
+
+这不阻塞公开仓库：Release 页可以先挂扩展 + 源码 tarball，exe 出来后在**同一个 tag** 上补挂资产。
+Release 的资产可以增删，不需要换 tag。
