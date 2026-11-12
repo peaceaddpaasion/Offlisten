@@ -1,5 +1,7 @@
 # 录匣 Offlisten
 
+<sub>[English](README.en.md) · 中文</sub>
+
 **100% 离线的会议 / 课堂转写。没有账号，没有云端，拔掉网线它还在写。**
 
 > Offlisten — 100% offline speech-to-text for meetings and lectures.
@@ -82,6 +84,7 @@
 
 ```bash
 node tools/contract_check.js          # 对运行中的后端验 19 项契约
+python tools/check-links.py           # 所有 .md 里的相对链接是否真实存在（区分大小写）
 python tools/name_cluster.py          # 候选名聚类与"打错就串"检测（纯标准库、离线）
 pwsh tools/pack.ps1                   # 打包扩展，并校验 manifest 引用的文件真实存在
 python tools/engine-drift.py          # engine/ 与开发工作区是否漂移（退出码 1 = 有差异）
@@ -150,6 +153,7 @@ node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 | `docs/naming-tooling.md` | 命名工具链：能力核查、分工边界、聚类实测 |
 | `docs/publish.md` | 发布占位清单（GitHub + Release + 命名判定） |
 | `extension/icons/README.md` | 图标源文件、配色，与逐尺寸光栅化的再生方法 |
+| `CONTRIBUTING.md` | 怎么改：模型下载地址、契约纪律、提交规范、CI 会检查什么 |
 | `CITATION.cff` | 引用信息（GitHub 侧栏会显示「Cite this repository」） |
 
 ## License
