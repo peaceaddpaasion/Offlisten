@@ -122,6 +122,18 @@ def unavailable(date, source, err):
     return [row(date, source, "_unavailable", None, err)]
 
 
+def warn(msg):
+    """缺凭证是配置状态，不是数据事件：不落盘，只在运行日志里留一条。
+
+    落到 CSV 里会变成「每天一行 403」，把真正取到的数淹掉；
+    而数据缺口本身就表现为那段没有行，不需要额外的墓碑。
+    """
+    if os.environ.get("GITHUB_ACTIONS"):
+        print("::warning title=流量数据缺凭证::%s" % msg)
+    else:
+        print("警告：%s" % msg)
+
+
 # ---------------------------------------------------------------- sources
 
 def collect_github(token, date):
@@ -157,7 +169,10 @@ def collect_github(token, date):
         good, t, err = fetch("%s/traffic/%s?per=day" % (base, kind), token)
         ok["github_traffic"] = good
         if not good:
-            rows += unavailable(date, "github_traffic", err)
+            if err.startswith("缺凭证"):
+                warn("github_traffic（%s）— %s" % (kind, err))
+            else:
+                rows += unavailable(date, "github_traffic", err)
             continue
         days = t.get(kind, [])
         for item in days:
@@ -177,7 +192,10 @@ def collect_github(token, date):
         good, t, err = fetch("%s/traffic/popular/%s" % (base, kind), token)
         ok["github_popular"] = ok.get("github_popular", True) and good
         if not good:
-            rows += unavailable(date, "github_popular", err)
+            if err.startswith("缺凭证"):
+                warn("github_popular（%s）— %s" % (kind, err))
+            else:
+                rows += unavailable(date, "github_popular", err)
             continue
         for item in t:
             name = item.get("referrer") or item.get("path") or "?"

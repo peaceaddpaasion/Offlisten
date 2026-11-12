@@ -53,11 +53,9 @@ jobs:
           git push
           echo "已提交今日快照" >> "$GITHUB_STEP_SUMMARY"
 
-      # 提交之后再判断：数据该留的已经留下，红叉只用来提醒「今天有源取不到」。
+      # 提交之后再判断：数据该留的已经留下，红叉只用来提醒「今天有源真的取不到」。
       # 顺序反过来会导致一次网络抖动就让当天的其余指标一起丢。
-      #
-      # 分两类：缺凭证是已知的权限模型限制（配 METRICS_TOKEN 即修复），只报警告；
-      # 其余失败才是真的坏了，让 job 变红。
+      # 缺凭证不在这里处理——那属于配置状态，脚本自己发 warning，不落盘。
       - name: 检查今天有没有源挂掉
         shell: bash
         run: |
@@ -68,13 +66,9 @@ jobs:
           with open("docs/metrics/history.csv", encoding="utf-8") as f:
               rows = [r for r in csv.DictReader(f)
                       if r["date"] == today and r["metric"] == "_unavailable"]
-          missing = [r for r in rows if r["note"].startswith("缺凭证")]
-          broken = [r for r in rows if not r["note"].startswith("缺凭证")]
-          for r in missing:
-              print("::warning title=流量数据缺凭证::%s — %s" % (r["source"], r["note"]))
-          for r in broken:
+          for r in rows:
               print("::error title=采集失败::%s — %s" % (r["source"], r["note"]))
           if not rows:
-              print("全部数据源可用")
-          sys.exit(1 if broken else 0)
+              print("没有失败的数据源")
+          sys.exit(1 if rows else 0)
           PY
