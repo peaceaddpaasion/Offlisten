@@ -1,0 +1,53 @@
+name: 缺陷
+description: 扩展或引擎的行为与文档不符
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先说清是哪一类问题，这决定了排查路径：
+        **离线可用性**（断网后失效、上传、连了远程服务）**> 连接问题**（token、端口、发现文件）**> 识别质量**（掉字、错字、没标点）。
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: 出问题的半边
+      options:
+        - 扩展（浏览器）
+        - 引擎（本机 Python）
+        - 两者之间的连接
+        - 文档里的数字或说法与代码不符
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      description: Windows 版本 / 浏览器与版本 / 引擎档位（sensevoice 或 zipformer）
+      placeholder: Windows 11 24H2 · Edge 142 · sensevoice
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. engine\run_transcriber.bat live --headless
+        2. 扩展粘贴地址并连接
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 期望与实际
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志或截图
+      description: 引擎控制台输出、`app_run.log`、扩展的 service worker 控制台
+      render: text

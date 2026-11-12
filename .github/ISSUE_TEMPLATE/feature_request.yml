@@ -1,0 +1,38 @@
+name: 需求 / 改动建议
+description: 想加什么，或者觉得哪条边界应该改
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这个项目主动拒绝的东西比接受的多（见 `CONTRIBUTING.md` 末尾）。建议里最有用的一句是
+        **"现在为什么做不到"**——它比"我想要 X"更能推进讨论。
+
+  - type: textarea
+    id: what
+    attributes:
+      label: 想加什么
+      description: 一句话说清；如果它影响对外承诺（离线、无账号、无云端），也写出来
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 现在为什么做不到
+      description: 是技术限制（浏览器 API、模型能力）、还是取舍（体积、延迟）？如果只是没人做，也直说
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 涉及哪块
+      options:
+        - 扩展
+        - 引擎
+        - 契约（docs/contract.md）
+        - 分发与安装
+        - 文档 / 测绘
+    validations:
+      required: true

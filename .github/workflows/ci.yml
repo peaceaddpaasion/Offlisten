@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: 文档引用
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: 所有路径引用是否真实存在
+        run: python tools/check-links.py
+
+  syntax:
+    name: 语法
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Python 语法
+        run: python -m compileall -q engine tools
+      - name: JS 语法
+        shell: bash
+        run: |
+          for f in extension/*.js tools/*.js; do
+            echo "check $f"
+            node --check "$f"
+          done
+
+  package:
+    name: 打包扩展
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: pack.ps1（校验 manifest 引用的每个文件）
+        shell: pwsh
+        run: ./tools/pack.ps1
+      - name: 校验包内容
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = Get-ChildItem dist/*.zip | Select-Object -First 1
+          if (-not $zip) { throw "pack.ps1 没有产出 zip" }
+          $z = [IO.Compression.ZipFile]::OpenRead($zip.FullName)
+          $names = @($z.Entries | ForEach-Object { $_.FullName })
+          $z.Dispose()
+          "files: $($names.Count)"
+          $names | ForEach-Object { "  $_" }
+          if ($names -notcontains "manifest.json") { throw "包内缺 manifest.json" }
+          if (@($names | Where-Object { $_ -like "*.svg" }).Count -gt 0) {
+            throw "SVG 源文件混进了发行包：只发 PNG"
+          }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: extension-${{ github.sha }}
+          path: dist/*.zip
+          if-no-files-found: error

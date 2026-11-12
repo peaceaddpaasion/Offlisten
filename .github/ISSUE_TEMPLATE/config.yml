@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 接口契约（端点、字段、错误码、鉴权）
+    url: https://github.com/peaceaddpaasion/Offlisten/blob/main/docs/contract.md
+    about: 两侧唯一的接口约定。改端点之前先读这里。
+  - name: 可用性矩阵怎么补一格
+    url: https://github.com/peaceaddpaasion/Offlisten/blob/main/docs/bench/README.md
+    about: 只有"该格不存在"可以不给数据，但必须引官方原文。
+  - name: 贡献规则与环境搭建
+    url: https://github.com/peaceaddpaasion/Offlisten/blob/main/CONTRIBUTING.md
+    about: 模型下载地址、提交规范、不会被接受的改动。
