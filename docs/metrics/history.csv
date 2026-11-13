@@ -51,16 +51,16 @@ date,source,metric,value,note
 2026-11-11,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
 2026-11-11,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
 2026-11-11,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
-2026-11-12,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
-2026-11-12,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
+2026-11-12,github_traffic,clones,37,回填自 14 天窗口；平台按 UTC 日切
+2026-11-12,github_traffic,clones_uniques,2,回填自 14 天窗口；平台按 UTC 日切
 2026-11-12,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
 2026-11-12,github_traffic,views_uniques,0,回填自 14 天窗口；平台按 UTC 日切
 2026-11-13,github,forks,0,
 2026-11-13,github,open_issues,0,
 2026-11-13,github,stars,0,
 2026-11-13,github,watchers,0,
-2026-11-13,github_release,asset.whisper-ext-0.2.1.zip,0,tag v0.2.1
-2026-11-13,github_release,downloads_total,0,1 个 release
+2026-11-13,github_release,asset.whisper-ext-0.2.1.zip,1,tag v0.2.1
+2026-11-13,github_release,downloads_total,1,1 个 release
 2026-11-13,github_traffic,clones,0,回填自 14 天窗口；平台按 UTC 日切
 2026-11-13,github_traffic,clones_uniques,0,回填自 14 天窗口；平台按 UTC 日切
 2026-11-13,github_traffic,views,0,回填自 14 天窗口；平台按 UTC 日切
