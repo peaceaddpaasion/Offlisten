@@ -31,13 +31,23 @@ jobs:
           python-version: "3.13"
 
       - name: 采集
+        id: collect
         env:
           # 流量接口（/traffic/*）要求 fine-grained token 的 Administration (read)，
           # Actions 内置 token 无权授予，实测返回 403 "Resource not accessible by integration"。
           # 所以优先用 secret METRICS_TOKEN；没配就退回内置 token——
           # 此时仓库计数照常，只有流量那一段标「缺凭证」，不写 0。
           GH_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
-        run: python tools/metrics.py --write
+        run: |
+          set -o pipefail
+          python tools/metrics.py --write 2>&1 | tee /tmp/collect.log
+          # 缺凭证时脚本只发 warning 不落盘，所以只能从本轮输出判断，
+          # 不能看 CSV 里有没有行——历史行会让它一直显示「已采集」。
+          if grep -q "流量数据缺凭证" /tmp/collect.log; then
+            echo "traffic=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "traffic=1" >> "$GITHUB_OUTPUT"
+          fi
 
       # 图由 CSV 渲染，不手绘。放在采集之后、提交之前，
       # 这样一次提交里同时有数字和由它派生的徽章与曲线，两者不可能不同步。
@@ -46,34 +56,21 @@ jobs:
 
       # 缺凭证时图上的浏览曲线是空的。只在日志里发 warning 太隐蔽，
       # 进 Step Summary 才看得到，否则下一个人会以为「没人看」。
-      # 按实际写进 CSV 的行数判断，不按 secret 是否存在——token 过期也会 403。
       - name: 流量段状态
+        env:
+          TRAFFIC: ${{ steps.collect.outputs.traffic }}
         run: |
-          python - <<'PY'
-          import csv, datetime as dt, os
-          tz = dt.timezone(dt.timedelta(hours=8))
-          # 平台窗口到昨天为止，今天的格子明天才会出现——所以按「最近 3 天」判断，
-          # 按当天判断会永远显示未采集。
-          lo = (dt.datetime.now(tz).date() - dt.timedelta(days=3)).isoformat()
-          with open("docs/metrics/history.csv", encoding="utf-8") as f:
-              n = sum(1 for r in csv.DictReader(f)
-                      if r["date"] >= lo and r["source"] == "github_traffic")
-          lines = []
-          if n:
-              lines = ["流量段：最近 3 天写入 %d 行（views / clones 及其 uniques）" % n]
-          else:
-              lines = [
-                  "### 流量段未采集",
-                  "",
-                  "`/traffic/*` 要求 fine-grained token 的 **Administration: Read-only**，"
-                  "内置 `GITHUB_TOKEN` 无权授予，所以这几天的浏览/克隆没有数据（不是 0）。",
-                  "",
-                  "配好 secret `METRICS_TOKEN` 后下一轮会自动补回 14 天窗口。",
-              ]
-          path = os.environ.get("GITHUB_STEP_SUMMARY", "summary.md")
-          with open(path, "a", encoding="utf-8") as f:
-              f.write("\n".join(lines) + "\n")
-          PY
+          if [ "$TRAFFIC" = "1" ]; then
+            echo "流量段：已采集（含 views / clones 及其 uniques）" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          tee -a "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ### 流量段未采集
+
+          `/traffic/*` 要求 fine-grained token 的 **Administration: Read-only**，内置 `GITHUB_TOKEN` 无权授予，所以这几天的浏览/克隆没有数据（不是 0）。
+
+          配好 secret `METRICS_TOKEN` 后下一轮会自动补回 14 天窗口。
+          EOF
 
       - name: 提交
         run: |
