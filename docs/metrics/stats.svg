@@ -16,8 +16,8 @@
 <text x="598" y="69" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="29" font-weight="600" fill="#111827">0</text>
 <text x="598" y="86" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#6b7280">逐日曲线，含重复访问</text>
 <line x1="598" y1="180" x2="858" y2="180" stroke="#e5e7eb" stroke-width="1"/>
-<path d="M598.0 179.0 L618.0 179.0 L638.0 179.0 L658.0 179.0 L678.0 179.0 L698.0 179.0 L718.0 179.0 L738.0 179.0 L758.0 179.0 L778.0 179.0 L798.0 179.0 L818.0 179.0 L838.0 179.0 L858.0 179.0 L858.0 179.0 L598.0 179.0 Z" fill="#2f9e6f" opacity="0.10"/>
-<path d="M598.0 179.0 L618.0 179.0 L638.0 179.0 L658.0 179.0 L678.0 179.0 L698.0 179.0 L718.0 179.0 L738.0 179.0 L758.0 179.0 L778.0 179.0 L798.0 179.0 L818.0 179.0 L838.0 179.0 L858.0 179.0" fill="none" stroke="#2f9e6f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M598.0 179.0 L616.6 179.0 L635.1 179.0 L653.7 179.0 L672.3 179.0 L690.9 179.0 L709.4 179.0 L728.0 179.0 L746.6 179.0 L765.1 179.0 L783.7 179.0 L802.3 179.0 L820.9 179.0 L839.4 179.0 L858.0 179.0 L858.0 179.0 L598.0 179.0 Z" fill="#2f9e6f" opacity="0.10"/>
+<path d="M598.0 179.0 L616.6 179.0 L635.1 179.0 L653.7 179.0 L672.3 179.0 L690.9 179.0 L709.4 179.0 L728.0 179.0 L746.6 179.0 L765.1 179.0 L783.7 179.0 L802.3 179.0 L820.9 179.0 L839.4 179.0 L858.0 179.0" fill="none" stroke="#2f9e6f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
 <text x="598" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280">10-30</text>
-<text x="858" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280" text-anchor="end">11-12</text>
+<text x="858" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280" text-anchor="end">11-13</text>
 </svg>
