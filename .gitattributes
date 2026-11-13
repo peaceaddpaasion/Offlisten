@@ -1,0 +1,9 @@
+# 仓库内统一 LF。docs/metrics/stats.svg 与 history.csv 由 CI 每天重写，
+# 若检出成 CRLF，本机再生成一次就会出现「内容相同、字节不同」的假 diff，
+# 每天空提交一次。这里钉死，不依赖各人 core.autocrlf 的取值。
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.zip binary
+*.pdf binary
