@@ -1,8 +1,8 @@
 name: Metrics
 
-# 平台只给当前值，不给历史：流量接口 14 天就删，release 下载数只有累计值没有按天。
-# 所以每天抄一次，抄进仓库，变成可以 diff 的字节。这本账的价值随时间增加，
-# 停更一天就永远缺一天——这正是它必须自动化、而不是想起来才手动跑的原因。
+# 每天采一次计数：流量接口只回 14 天，release 下载数只有累计值。
+# 采到的写进 docs/metrics/history.csv，再由它渲染 README 的徽章与曲线，
+# 三步在同一次运行里完成，人不用碰。
 
 on:
   schedule:
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   snapshot:
-    name: 抄一份快照
+    name: 采集快照
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -39,10 +39,41 @@ jobs:
           GH_TOKEN: ${{ secrets.METRICS_TOKEN || secrets.GITHUB_TOKEN }}
         run: python tools/metrics.py --write
 
-      # 表由 CSV 生成，不手写。放在采集之后、提交之前，
-      # 这样一次提交里同时有数字和由它派生的表，两者不可能不同步。
-      - name: 重写 README 里的计数表
+      # 图由 CSV 渲染，不手绘。放在采集之后、提交之前，
+      # 这样一次提交里同时有数字和由它派生的徽章与曲线，两者不可能不同步。
+      - name: 重画统计图并重写 README
         run: python tools/metrics.py --write-readme
+
+      # 缺凭证时图上的浏览曲线是空的。只在日志里发 warning 太隐蔽，
+      # 进 Step Summary 才看得到，否则下一个人会以为「没人看」。
+      # 按实际写进 CSV 的行数判断，不按 secret 是否存在——token 过期也会 403。
+      - name: 流量段状态
+        run: |
+          python - <<'PY'
+          import csv, datetime as dt, os
+          tz = dt.timezone(dt.timedelta(hours=8))
+          # 平台窗口到昨天为止，今天的格子明天才会出现——所以按「最近 3 天」判断，
+          # 按当天判断会永远显示未采集。
+          lo = (dt.datetime.now(tz).date() - dt.timedelta(days=3)).isoformat()
+          with open("docs/metrics/history.csv", encoding="utf-8") as f:
+              n = sum(1 for r in csv.DictReader(f)
+                      if r["date"] >= lo and r["source"] == "github_traffic")
+          lines = []
+          if n:
+              lines = ["流量段：最近 3 天写入 %d 行（views / clones 及其 uniques）" % n]
+          else:
+              lines = [
+                  "### 流量段未采集",
+                  "",
+                  "`/traffic/*` 要求 fine-grained token 的 **Administration: Read-only**，"
+                  "内置 `GITHUB_TOKEN` 无权授予，所以这几天的浏览/克隆没有数据（不是 0）。",
+                  "",
+                  "配好 secret `METRICS_TOKEN` 后下一轮会自动补回 14 天窗口。",
+              ]
+          path = os.environ.get("GITHUB_STEP_SUMMARY", "summary.md")
+          with open(path, "a", encoding="utf-8") as f:
+              f.write("\n".join(lines) + "\n")
+          PY
 
       - name: 提交
         run: |
