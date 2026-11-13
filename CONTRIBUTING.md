@@ -57,7 +57,7 @@ engine\run_transcriber.bat live
 python tools/check-links.py                  # 文档里所有路径引用是否真实存在（区分大小写）
 python -m compileall -q engine               # 语法
 node --check extension/popup.js && node --check extension/service_worker.js
-pwsh tools/pack.ps1                          # 打包并校验 manifest 引用的文件
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/pack.ps1   # 打包并校验 manifest 引用的文件
 node tools/contract_check.js --url "http://127.0.0.1:<port>/?token=<token>"   # 后端在跑时
 ```
 

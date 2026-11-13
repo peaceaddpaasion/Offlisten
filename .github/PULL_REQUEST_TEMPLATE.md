@@ -9,7 +9,7 @@
 ## 自查
 
 - [ ] `python tools/check-links.py` 通过（改了文档就必须跑）
-- [ ] `pwsh tools/pack.ps1` 通过（动了 `extension/` 就必须跑）
+- [ ] `powershell -NoProfile -ExecutionPolicy Bypass -File tools/pack.ps1` 通过（动了 `extension/` 就必须跑）
 - [ ] 动了扩展行为，已 bump `extension/manifest.json` 的 `version`
 - [ ] 动了端点 / 字段 / 错误码，已先改 `docs/contract.md`
 - [ ] 一个提交只动一个目录族（`engine/` `extension/` `tools/` `docs/` 不混提）

@@ -69,9 +69,12 @@ So the two halves can be released, uninstalled and reimplemented separately. The
 
 ## Install (current stage: unpacked)
 
+The extension is also available as [whisper-ext-0.2.1.zip](https://github.com/peaceaddpaasion/Offlisten/releases/latest/download/whisper-ext-0.2.1.zip) — 12.5 KB, identical to `extension/` in the repository, the zip just saves a clone.
+**The engine has no installer yet**; it runs from source only, as described in [`docs/distribution.md`](docs/distribution.md). The extension does no inference, so without an engine it has nothing to talk to.
+
 1. Start the local engine; the console prints a full URL containing a token.
 2. Open `chrome://extensions` or `edge://extensions` and enable developer mode.
-3. "Load unpacked" → select the **`extension/`** directory (the level containing `manifest.json`, not the repository root).
+3. "Load unpacked" → select the **`extension/`** directory (the level containing `manifest.json`, not the repository root); if you used the zip, unzip it first and select the unzipped level.
 4. Click the extension icon, paste that URL, save and connect.
 
 > Loading from the repository root fails: there is no `manifest.json` there. That is the cost of moving the extension into a subdirectory, and it is where it belongs.
@@ -82,7 +85,7 @@ So the two halves can be released, uninstalled and reimplemented separately. The
 node tools/contract_check.js          # 19 contract assertions against a running engine
 python tools/check-links.py           # every relative link in every .md resolves, case-sensitively
 python tools/name_cluster.py          # candidate-name clustering, typo-collision detection (stdlib only)
-pwsh tools/pack.ps1                   # package the extension, verify every file manifest.json references
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/pack.ps1   # package the extension, verify every file manifest.json references
 python tools/engine-drift.py          # engine/ vs working tree drift (exit 1 = drift)
 python tools/build-dist.py --source <engine> --compress   # measure the real install size
 python tools/metrics.py --report      # turn the recorded download/traffic history into a table (see docs/metrics/)

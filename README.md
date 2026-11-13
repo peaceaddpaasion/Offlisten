@@ -74,9 +74,12 @@
 
 ## 安装（当前阶段：unpacked）
 
+扩展可以直接下 [whisper-ext-0.2.1.zip](https://github.com/peaceaddpaasion/Offlisten/releases/latest/download/whisper-ext-0.2.1.zip)（12.5 KB，内容与仓库里的 `extension/` 一致，zip 只省一次 clone），也可以从仓库直接加载。
+**引擎还没有安装包**，目前只能从源码跑，路径见 [`docs/distribution.md`](docs/distribution.md)。扩展不跑模型，没有引擎它连不上任何东西。
+
 1. 启动本地后端，控制台会打印一行带 token 的完整地址。
 2. 打开 `chrome://extensions` 或 `edge://extensions`，开启「开发者模式」。
-3. 「加载已解压的扩展程序」→ 选本仓库的 **`extension/`** 目录（含 `manifest.json` 那一层，不是仓库根目录）。
+3. 「加载已解压的扩展程序」→ 选本仓库的 **`extension/`** 目录（含 `manifest.json` 那一层，不是仓库根目录）；用 zip 的话先解压，选解压出来的那一层。
 4. 点扩展图标，把那行完整地址粘进输入框 → 「保存并连接」。
 
 > 从仓库根目录加载会失败：根目录没有 `manifest.json`。这是把扩展收进子目录的代价，也是它该在的位置。
@@ -87,7 +90,7 @@
 node tools/contract_check.js          # 对运行中的后端验 19 项契约
 python tools/check-links.py           # 所有 .md 里的相对链接是否真实存在（区分大小写）
 python tools/name_cluster.py          # 候选名聚类与"打错就串"检测（纯标准库、离线）
-pwsh tools/pack.ps1                   # 打包扩展，并校验 manifest 引用的文件真实存在
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/pack.ps1   # 打包扩展，并校验 manifest 引用的文件真实存在
 python tools/engine-drift.py          # engine/ 与开发工作区是否漂移（退出码 1 = 有差异）
 python tools/build-dist.py --source <后端> --compress   # 发行体积实测
 python tools/metrics.py --report      # 把记下的下载/浏览历史打成一张表（数据见 docs/metrics/）
