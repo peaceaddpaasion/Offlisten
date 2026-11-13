@@ -26,7 +26,7 @@
 
 - 图是怎么推出来的、凭什么能被证伪 → [`docs/paper.md`](docs/paper.md)（工作稿）
 - 试过并放弃的路 → [`docs/negative-results.md`](docs/negative-results.md)（9 条，附判定与证据路径）
-- 它被打开、被下载了多少次 → 下面的[计数](#计数)一节（平台只留 14 天，这里每天抄一次）
+- 它被打开、被下载了多少次 → 下面的[下载与浏览](#下载与浏览)一节
 
 ---
 
@@ -136,24 +136,15 @@ node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 `extension/manifest.json` 的 `version` 是本仓库唯一版本号。改动扩展行为必须同时更新它，
 否则商店审核与「已加载版本」无法区分。契约变更见 `docs/contract.md` 的变更记录。
 
-## 计数
-
-平台只给当前值，不给历史：仓库浏览 14 天就删，Release 下载数只有累计，HF 只给近 30 天。
-所以这个仓库每天抄一次，抄进 `docs/metrics/history.csv`，下表由那份 CSV 生成，不是手写的。
+## 下载与浏览
 
 <!-- metrics:begin -->
-| 指标 | 最新 | 7 天前 | 变化 |
-|---|---|---|---|
-| Release 下载（累计） | 0 | — | — |
-| HF 模型下载（累计） | 0 | — | — |
-| HF 模型下载（近 30 天） | 0 | — | — |
-| 仓库浏览（近 14 天） | 0 | 0 | 0 |
-| star | 0 | — | — |
+![downloads](docs/metrics/badge-downloads.svg) ![hf](docs/metrics/badge-hf.svg) ![views](docs/metrics/badge-views.svg) ![stars](docs/metrics/badge-stars.svg)
 
-<sub>数据日期 2026-11-13，由 `tools/metrics.py --write-readme` 从 [`docs/metrics/history.csv`](docs/metrics/history.csv) 生成。取不到写 —，不写 0；口径见 [`docs/metrics/README.md`](docs/metrics/README.md)。</sub>
+![下载量与仓库浏览的逐日曲线](docs/metrics/stats.svg)
+
+<sub>数据截至 2026-11-13。缺数据的日子断线，不补 0；口径见 [`docs/metrics/README.md`](docs/metrics/README.md)。</sub>
 <!-- metrics:end -->
-
-GitHub 那几行现在是 0：仓库还是私有的，没人能访问到它，不是没人想看。
 
 ## 文档
 

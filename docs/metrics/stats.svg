@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="224" viewBox="0 0 880 224" role="img">
+<rect width="880" height="224" fill="#ffffff"/>
+<text x="22" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11.5" fill="#6b7280">Release 下载（累计）</text>
+<text x="22" y="69" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="29" font-weight="600" fill="#111827">0</text>
+<text x="22" y="86" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#6b7280">暂无对比</text>
+<line x1="22" y1="180" x2="288" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<circle cx="288.0" cy="179.0" r="2.8" fill="#2f6fd0"/>
+<text x="288" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280" text-anchor="end">11-13</text>
+<text x="307" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11.5" fill="#6b7280">HF 模型下载（累计）</text>
+<text x="307" y="69" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="29" font-weight="600" fill="#111827">0</text>
+<text x="307" y="86" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#6b7280">暂无对比</text>
+<line x1="307" y1="180" x2="573" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<circle cx="573.0" cy="179.0" r="2.8" fill="#d99a2b"/>
+<text x="573" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280" text-anchor="end">11-13</text>
+<text x="592" y="36" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11.5" fill="#6b7280">仓库浏览（近 14 天）</text>
+<text x="592" y="69" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="29" font-weight="600" fill="#111827">0</text>
+<text x="592" y="86" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#6b7280">逐日曲线，含重复访问</text>
+<line x1="592" y1="180" x2="858" y2="180" stroke="#e5e7eb" stroke-width="1"/>
+<path d="M592.0 179.0 L612.5 179.0 L632.9 179.0 L653.4 179.0 L673.8 179.0 L694.3 179.0 L714.8 179.0 L735.2 179.0 L755.7 179.0 L776.2 179.0 L796.6 179.0 L817.1 179.0 L837.5 179.0 L858.0 179.0 L858.0 179.0 L592.0 179.0 Z" fill="#2f9e6f" opacity="0.10"/>
+<path d="M592.0 179.0 L612.5 179.0 L632.9 179.0 L653.4 179.0 L673.8 179.0 L694.3 179.0 L714.8 179.0 L735.2 179.0 L755.7 179.0 L776.2 179.0 L796.6 179.0 L817.1 179.0 L837.5 179.0 L858.0 179.0" fill="none" stroke="#2f9e6f" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="592" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280">10-30</text>
+<text x="858" y="195" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'PingFang SC','Microsoft YaHei',sans-serif" font-size="10" fill="#6b7280" text-anchor="end">11-12</text>
+</svg>
