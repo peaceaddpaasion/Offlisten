@@ -127,9 +127,12 @@ P4 商店认证
 
 当前远端：`main = cc22616`，44 个文件，`git diff origin/main main` 为空。
 
-**遗留：仓库是私有的。** 未登录访问 `api.github.com/repos/peaceaddpaasion/Offlisten` 返回 404。
-要对外传播必须先改可见性：仓库页 → Settings → General → 最下方 Danger Zone → Change visibility → Public。
-公开后会被搜索引擎与镜像站抓取，撤回也删不干净，改之前想清楚。
+**仓库可见性已改（2026-11-13）。** 未登录访问 `api.github.com/repos/peaceaddpaasion/Offlisten` 现为 200。
+改法：fine-grained PAT 调 `PATCH /repos/:owner/:repo {"private": false}`，或网页 Settings → General → Danger Zone → Change visibility。公开后会被搜索引擎与镜像站抓取，撤回也删不干净。
+
+切公开顺带暴露的一条事实：**私有期 README 里的相对路径图片全是破图**。GitHub 把图交给 camo 匿名抓取，
+私有仓对匿名请求返回 404，页面显示「图片来源无效」，与 markdown 写法无关。同时 `Administration` 权限的
+`Read` 与 `Read and write` 是两档，只给 Read 能读流量、改不了可见性；`Secrets` 与 `Contents` 也要各自勾。
 
 工具侧的事实：沙箱内 git 一律走 `127.0.0.1` 代理，访问 `github.com` 报 `CONNECT tunnel failed, response 502`，
 清空 `HTTP_PROXY`/`HTTPS_PROXY` 无效；非沙箱执行才通。这不是凭据问题——凭据助手是 `manager`，登录态一直有效。
@@ -144,7 +147,7 @@ P4 商店认证
 
 ## 6. 未验证清单
 
-- 仓库可见性仍是私有（需在网页改），改了之后搜索引擎和镜像站的抓取无法撤回。
+- ~~仓库可见性仍是私有~~ 已于 2026-11-13 切公开。
 - MSIX 的 VFS 重定向与只读行为（按机制推断，未打包实测）。
 - `sherpa-ncnn` 在本机 Python 3.13 x64 上实际可跑、以及 SenseVoice→ncnn 的质量差。
 - Microsoft Store 当前对个人开发者的具体条款（政策变动频繁，提交前需看 Partner Center）。

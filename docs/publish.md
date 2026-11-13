@@ -8,38 +8,41 @@
 | 可对外读的 README | ✅ 中文 + 英文两份，互相有语言切换 |
 | LICENSE | ✅ MIT，持有人写实名 |
 | 版本 tag | ✅ `v0.2.1` |
-| 远端仓库 | ✅ 已推送（`main` + `v0.2.1`），**但仍是私有** |
-| CI | ✅ `.github/workflows/ci.yml`，三个 job |
+| 远端仓库 | ✅ **已公开**（2026-11-13），`api.github.com/repos/peaceaddpaasion/Offlisten` 匿名 200 |
+| Release | ✅ `v0.2.1`，附件 `whisper-ext-0.2.1.zip`（12,787 B） |
+| 数据账本 | ✅ `METRICS_TOKEN` 已配（fine-grained，Administration + Secrets 读写），流量段每天入库 |
+| CI | ✅ `.github/workflows/ci.yml` + `metrics.yml` |
 | 贡献入口 | ✅ `CONTRIBUTING.md` + issue 表单 + PR 模板 |
 
-**唯一的阻塞是仓库可见性**：现在只有你登录时能看到，别人点开是 404。
+## 1. 切公开这一步（已完成）
 
-## 1. 切成公开（剩下的唯一一步）
+2026-11-13 用 fine-grained PAT 调 `PATCH /repos/:owner/:repo {"private": false}` 完成，同时设了 homepage 指向 HF Space。
 
-仓库页 → Settings → General → 拉到最底 **Danger Zone** → Change visibility → Public。
+同一件事也可以用网页做：Settings → General → 拉到最底 **Danger Zone** → Change visibility → Public。
+公开后会被搜索引擎与镜像站抓取，撤回删不干净。
 
-切之前想清楚：公开后会被搜索引擎与各类镜像站抓取，撤回删不干净。你要的是传播和留痕，这一步是必经的。
+两个副作用值得记下来：
 
-本机未装 `gh`，所以只能用网页。切完之后 `api.github.com/repos/peaceaddpaasion/Offlisten` 会从 404 变成 200，可用这条来验证，不必靠肉眼。
+- **README 里的相对路径图片，私有期一律是破图**。GitHub 渲染时把图交给 camo 匿名抓取，私有仓对匿名请求返回 404，页面显示「图片来源无效」。这跟 markdown 语法无关，公开后自动恢复。
+- **`/traffic/*` 与 `Secrets` 两个接口要的权限档位不同**。`Administration` 光有 `Read` 能读流量但改不了可见性，`Secrets` 默认不给。要三个都给：`Administration: Read and write`、`Secrets: Read and write`、`Contents: Read and write`。
 
-## 2. 建完立刻做的五件事（占位的实际价值在这里）
+## 2. 公开时该做的五件事
 
-1. **About 栏**填这句（网页建仓时已写过，别在覆盖时丢掉）：
+1. **About 栏**填这句：
 
    > 本地离线会议转写（MV3 扩展 + sherpa-onnx/SenseVoice 引擎）录匣，性能和功能的精确权衡，部署灵活度和性能的博弈。
 
    Topics 建议：
    `offline` `speech-to-text` `asr` `sherpa-onnx` `sensevoice` `privacy` `mv3` `chrome-extension` `chinese`
-   —— 这几个词是**别人能找到你**的入口，比名字重要。
+   这几个词是**别人能找到你**的入口，比名字重要。
 2. **Pin 到个人主页**。简历上的链接比任何 SEO 都快。
 3. **发第一个 Release**，附上 `dist/whisper-ext-0.2.1.zip`。Release 页是"能下载"的证据。
-   > `dist/` 和 `*.zip` 已在 `.gitignore` 里，**不要提交进仓库**——二进制走 Release 附件，再单独 `git commit` 会让仓库历史变脏。
-4. **README 首屏保持三行以内**：一句承诺 + 四个数字。技术面试官只看前 15 秒。
-5. **确认数据账本开始记数**。`Metrics` 工作流每天 03:17 UTC 快照一次，私有期间全是 0；
-   转公开后第一周去看 `docs/metrics/history.csv` 是否出现非零段——那是「真的有人来了」的第一个客观证据。
-   同时可以按 `docs/metrics/README.md` 的步骤配一个 `METRICS_TOKEN`（流量接口只认 fine-grained 的
-   Administration 权限，内置 token 打它 403），再把三个 shields 徽章解引到 README。
-   私有期间指向的 raw 链接会 404，徽章先别放。
+   > `dist/` 和 `*.zip` 已在 `.gitignore` 里，**不要提交进仓库**。二进制走 Release 附件。
+4. **README 首屏保持三行以内**：一句承诺 + 四个数字。
+5. **确认数据账本开始记数**。`Metrics` 工作流每天 03:17 UTC 快照一次。转公开后第一周去看
+   `docs/metrics/history.csv` 是否出现非零段，那是「真的有人来了」的第一个客观证据。
+   流量接口只认 fine-grained token 的 Administration 权限，内置 `GITHUB_TOKEN` 打它 403，
+   所以 secret `METRICS_TOKEN` 不能省。徽章是自渲染的，不必依赖 shields。
 
 ## 3. 为什么用 MIT 而不是 AGPL
 
