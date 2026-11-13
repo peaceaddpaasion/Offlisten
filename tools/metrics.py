@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""把散落在平台侧、且会过期或没有时间序列的公开计数，抄成仓库内的一本账。
+"""采集平台侧的计数，存成仓库内的历史序列，并渲染成 README 的徽章与曲线。
 
-为什么需要它：
-  - GitHub release 资产有 `download_count`，但那是**累计值**，平台不存按天的历史，
-    想画一条曲线只能自己每天抄一次。
-  - 仓库流量接口 `traffic/views`、`traffic/clones` 只保留 **14 天**（实测今天能取到的
-    最早一天是 2026-10-30），第 15 天被平台删掉，删掉就再也拿不回来。
-  - Hugging Face 的 model 只给近 30 天 `downloads` 与 `downloadsAllTime`；
-    static Space 只有 `likes`，`/api/spaces/<id>/analytics` 返回 404——**没有浏览量**。
-  平台不替我们留痕，所以自己抄。抄下来的每一行都能被 diff、被 review、被 grep，
-  也正好是「证据驱动」这套做法在数据侧的复用：不引用平台的当前值，引用我们自己记下的序列。
+平台只回当前值：流量接口 14 天、release 只有累计数、HF 是滚动 30 天。
+`docs/metrics/history.csv` 因此是本仓库唯一的计数序列，SVG 全部由它派生。
 
 三种值必须分开（这是整份脚本的纪律）：
     数字   接口给了，就是它
@@ -20,10 +13,10 @@
 
 用法：
     python tools/metrics.py                     # 只看，不落盘
-    python tools/metrics.py --write             # 写 docs/metrics/history.csv 与徽章 json
+    python tools/metrics.py --write             # 采集并写 history.csv、徽章 json、SVG
     python tools/metrics.py --write --date 2026-11-13
     python tools/metrics.py --write --strict    # 任一数据源失败即退出 1（CI 用这个）
-    python tools/metrics.py --write-readme      # 用已记下的历史重写 README 里的计数表（不联网）
+    python tools/metrics.py --write-readme      # 只从 CSV 重画图并重写 README 那一段（不联网）
 
 凭证：
     GitHub  依次取 --github-token → $GH_TOKEN/$GITHUB_TOKEN → `git credential fill`（仅本机可用）。
@@ -306,40 +299,274 @@ def write_badges(dirpath, rows, date):
             f.write("\n")
 
 
-# ---------------------------------------------------------------- readme table
+# ---------------------------------------------------------------- svg
+#
+# 图由 CSV 渲染，不由人画。三个面板读同一份 history.csv：
+# 累计值画折线、日增量画折线，缺数据的那一天**断线**而不是补零。
+# 全是 0 的时候曲线就贴在基线上——那是真实状态（仓库还没公开），
+# 不是渲染没生效，所以基线画成实线、右上角照样标刻度。
+
+SVG_FONT = ("-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',"
+            "Arial,'PingFang SC','Microsoft YaHei',sans-serif")
+
+PALETTE = {"gh": "#2f6fd0", "hf": "#d99a2b", "views": "#2f9e6f", "ink": "#111827",
+           "muted": "#6b7280", "rule": "#e5e7eb", "bg": "#ffffff"}
+
+
+def _esc(s):
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
+
+
+def _num(n):
+    return "—" if n is None else "{:,}".format(n)
+
+
+def _calendar(d0, d1):
+    a, b = dt.date.fromisoformat(d0), dt.date.fromisoformat(d1)
+    return [(a + dt.timedelta(days=i)).isoformat() for i in range((b - a).days + 1)]
+
+
+def _series(rows, source, metric):
+    """该指标的逐日序列，只覆盖它自己的首尾日期；没有行的日子是 None（不是 0）。"""
+    pts = {}
+    for r in rows:
+        if r["source"] == source and r["metric"] == metric and r["metric"] != "_unavailable":
+            v = r["value"].strip()
+            pts[r["date"]] = int(v) if v != "" else None
+    if not pts:
+        return []
+    return [(d, pts.get(d)) for d in _calendar(min(pts), max(pts))]
+
+
+def _segments(days):
+    """把 None 打点成断点：一条曲线可能由多段折线组成。"""
+    segs, cur = [], []
+    for d, v in days:
+        if v is None:
+            if cur:
+                segs.append(cur)
+                cur = []
+        else:
+            cur.append((d, v))
+    if cur:
+        segs.append(cur)
+    return segs
+
+
+def _panel(x, y, w, title, headline, sub, days, color, lang):
+    """一个面板：标题 / 大数字 / 变化 / 折线 / 起止日期。"""
+    h = 84                    # 绘图区高度
+    top = y + 74
+    base = top + h
+    out = []
+    out.append('<text x="%d" y="%d" font-family="%s" font-size="11.5" fill="%s">%s</text>'
+               % (x, y + 14, SVG_FONT, PALETTE["muted"], _esc(title)))
+    out.append('<text x="%d" y="%d" font-family="%s" font-size="29" font-weight="600" fill="%s">%s</text>'
+               % (x, y + 47, SVG_FONT, PALETTE["ink"], _esc(headline)))
+    out.append('<text x="%d" y="%d" font-family="%s" font-size="11" fill="%s">%s</text>'
+               % (x, y + 64, SVG_FONT, PALETTE["muted"], _esc(sub)))
+
+    # 基线：一直贴着它说明值就是 0，不是画丢了。
+    # 数据点整体抬高 1px，否则 0 值线会和基线重合成一条，读不出「确实采到了 0」。
+    zero = base - 1
+    out.append('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="%s" stroke-width="1"/>'
+               % (x, base, x + w, base, PALETTE["rule"]))
+
+    vals = [v for _, v in days if v is not None]
+    vmax = max(vals) if vals else 0
+    scale = vmax if vmax > 0 else 1
+
+    n = len(days)
+    if n:
+        def px(i):
+            # 只有一天数据时画在最右端：曲线读的是「最新到哪儿了」，不是「历史多长」
+            return x + (w * i / (n - 1) if n > 1 else w)
+
+        def py(v):
+            return zero - (v / scale) * (h - 6)
+
+        idx = {d: i for i, (d, _) in enumerate(days)}
+        for seg in _segments(days):
+            pts = [(px(idx[d]), py(v)) for d, v in seg]
+            if len(pts) >= 2:
+                d_attr = "M" + " L".join("%.1f %.1f" % p for p in pts)
+                out.append('<path d="%s L%.1f %.1f L%.1f %.1f Z" fill="%s" opacity="0.10"/>'
+                           % (d_attr, pts[-1][0], zero, pts[0][0], zero, color))
+                out.append('<path d="%s" fill="none" stroke="%s" stroke-width="2" '
+                           'stroke-linejoin="round" stroke-linecap="round"/>' % (d_attr, color))
+            for (cx, cy), (_, v) in zip(pts, seg):
+                if v > 0 or len(seg) == 1:
+                    out.append('<circle cx="%.1f" cy="%.1f" r="2.8" fill="%s"/>' % (cx, cy, color))
+
+        # 起止日期：跨度太长时只标首尾，够读了
+        if n == 1:
+            out.append('<text x="%d" y="%d" font-family="%s" font-size="10" fill="%s" '
+                       'text-anchor="end">%s</text>'
+                       % (x + w, base + 15, SVG_FONT, PALETTE["muted"], days[0][0][5:]))
+        else:
+            out.append('<text x="%d" y="%d" font-family="%s" font-size="10" fill="%s">%s</text>'
+                       % (x, base + 15, SVG_FONT, PALETTE["muted"], days[0][0][5:]))
+            out.append('<text x="%d" y="%d" font-family="%s" font-size="10" fill="%s" '
+                       'text-anchor="end">%s</text>'
+                       % (x + w, base + 15, SVG_FONT, PALETTE["muted"], days[-1][0][5:]))
+    else:
+        out.append('<text x="%d" y="%d" font-family="%s" font-size="11" fill="%s">%s</text>'
+                   % (x, base - 8, SVG_FONT, PALETTE["muted"],
+                      "还没有数据" if lang == "zh" else "no data yet"))
+    return out
+
+
+def _delta_text(cur, old, lang):
+    if cur is None:
+        return ""
+    if old is None:
+        return "暂无对比" if lang == "zh" else "no baseline yet"
+    d = cur - old
+    if d == 0:
+        return "与 7 天前持平" if lang == "zh" else "flat vs 7 d ago"
+    sign = "+" if d > 0 else ""
+    return ("较 7 天前 %s%d" if lang == "zh" else "%s%d vs 7 d ago") % (sign, d)
+
+
+def render_stats_svg(rows, lang="zh"):
+    """README 里那张图：Release 下载 / HF 下载 / 仓库浏览。"""
+    W, P, GAP, PW = 880, 22, 19, 266
+    H = 224
+    if not rows:
+        return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="60" viewBox="0 0 %d 60">'
+                '<text x="%d" y="34" font-family="%s" font-size="12" fill="%s">%s</text></svg>\n'
+                % (W, W, P, SVG_FONT, PALETTE["muted"],
+                   "还没有历史数据" if lang == "zh" else "no history yet"))
+
+    last = max(r["date"] for r in rows)
+    base7 = (dt.date.fromisoformat(last) - dt.timedelta(days=7)).isoformat()
+    s = by_series(rows)
+
+    def point(source, metric):
+        days = s.get((source, metric), {})
+        return point_value(days, last), point_value(days, base7)
+
+    rel_cur, rel_old = point("github_release", "downloads_total")
+    hf_cur, hf_old = point("hf_model", "downloads_all_time")
+    views = s.get(("github_traffic", "views"), {})
+    v_cur, v_old = window_sum(views, last, 14), window_sum(views, base7, 14)
+
+    zh = lang == "zh"
+    blocks = [
+        ("Release " + ("下载（累计）" if zh else "downloads (total)"),
+         _num(rel_cur), _delta_text(rel_cur, rel_old, lang),
+         _series(rows, "github_release", "downloads_total"), PALETTE["gh"]),
+        ("HF " + ("模型下载（累计）" if zh else "model downloads (all time)"),
+         _num(hf_cur), _delta_text(hf_cur, hf_old, lang),
+         _series(rows, "hf_model", "downloads_all_time"), PALETTE["hf"]),
+        ("仓库浏览（近 14 天）" if zh else "Repo views (last 14 d)",
+         _num(v_cur), ("逐日曲线，含重复访问" if zh else "daily below, repeat visits counted"),
+         _series(rows, "github_traffic", "views"), PALETTE["views"]),
+    ]
+
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
+           'viewBox="0 0 %d %d" role="img">' % (W, H, W, H),
+           '<rect width="%d" height="%d" fill="%s"/>' % (W, H, PALETTE["bg"])]
+    for i, (title, head, sub, days, color) in enumerate(blocks):
+        out += _panel(P + i * (PW + GAP), P, PW, title, head, sub, days, color, lang)
+    out.append("</svg>")
+    return "\n".join(out) + "\n"
+
+
+def render_badge_svg(label, value, color="#2f6fd0"):
+    """shields 扁平原样，自己画：仓库私有期第三方徽章取不到数据，本地渲染随时能看。"""
+    label = str(label)
+    msg = _num(value)
+    lw = int(len(label) * 6.3) + 10
+    mw = int(len(msg) * 6.9) + 10
+    w = lw + mw
+    h = 20
+    out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
+           'viewBox="0 0 %d %d" role="img" aria-label="%s: %s">' % (w, h, w, h, _esc(label), _esc(msg)),
+           '<rect width="%d" height="%d" rx="3" fill="#555"/>' % (w, h),
+           '<rect x="%d" width="%d" height="%d" rx="3" fill="%s"/>' % (lw, mw, h, color),
+           '<rect x="%d" width="4" height="%d" fill="%s"/>' % (lw, h, color),
+           '<g font-family="Verdana,DejaVu Sans,Geneva,sans-serif" font-size="11" fill="#fff">',
+           '<text x="%d" y="14" text-anchor="middle">%s</text>' % (lw // 2 + 1, _esc(label)),
+           '<text x="%d" y="14" text-anchor="middle">%s</text>' % (lw + mw // 2, _esc(msg)),
+           "</g></svg>"]
+    return "\n".join(out) + "\n"
+
+
+def write_charts(dirpath, rows):
+    """把图落到 docs/metrics/。README 引本地 SVG，不引第三方渲染服务。"""
+    os.makedirs(dirpath, exist_ok=True)
+    s = by_series(rows)
+    last = max(r["date"] for r in rows) if rows else None
+    views = s.get(("github_traffic", "views"), {})
+    v14 = window_sum(views, last, 14) if last else None
+
+    files = {
+        "stats.svg": render_stats_svg(rows, "zh"),
+        "badge-downloads.svg": render_badge_svg(
+            "release downloads",
+            point_value(s.get(("github_release", "downloads_total"), {}), last) if last else None,
+            PALETTE["gh"]),
+        "badge-hf.svg": render_badge_svg(
+            "hf downloads",
+            point_value(s.get(("hf_model", "downloads_all_time"), {}), last) if last else None,
+            PALETTE["hf"]),
+        "badge-views.svg": render_badge_svg("views 14d", v14, PALETTE["views"]),
+        "badge-stars.svg": render_badge_svg(
+            "stars",
+            point_value(s.get(("github", "stars"), {}), last) if last else None, "#8b5cf6"),
+    }
+    changed = []
+    for name, body in files.items():
+        path = os.path.join(dirpath, name)
+        old = ""
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                old = f.read()
+        if old != body:
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(body)
+            changed.append(name)
+    print("图：%s" % ("已更新 " + "、".join(changed) if changed else "无变化"))
+    return 0
+
+
+# ---------------------------------------------------------------- readme block
 
 MARK_BEGIN = "<!-- metrics:begin -->"
 MARK_END = "<!-- metrics:end -->"
 
-# README 只放能被一句话说清口径的几行；全部指标看 `--report`。
-# 第三列是口径：
-#   point    快照值（累计数或当前值），用相邻两点求差
-#   window14 把 14 天窗口内的日增量加总，和「7 天前的那个 14 天窗口」比
-SLOTS = [
-    ("github_release", "downloads_total", "point",
-     "Release 下载（累计）", "Release downloads (total)"),
-    ("hf_model", "downloads_all_time", "point",
-     "HF 模型下载（累计）", "HF model downloads (all time)"),
-    ("hf_model", "downloads_30d", "point",
-     "HF 模型下载（近 30 天）", "HF model downloads (last 30 d)"),
-    ("github_traffic", "views", "window14",
-     "仓库浏览（近 14 天）", "Repo views (last 14 d)"),
-    ("github", "stars", "point", "star", "Stars"),
-]
-
-HEADERS = {
-    "zh": ("| 指标 | 最新 | 7 天前 | 变化 |", "|---|---|---|---|"),
-    "en": ("| Metric | Latest | 7 days ago | Change |", "|---|---|---|---|"),
+# README 里只放图，不放表：图每天由 CI 重画，表会滞后成第二份真相。
+CHART_NOTE = {
+    "zh": "<sub>数据截至 %s。缺数据的日子断线，不补 0；口径见 "
+          "[`docs/metrics/README.md`](docs/metrics/README.md)。</sub>",
+    "en": "<sub>Data through %s. Missing days break the line instead of dropping to 0; "
+          "definitions in [`docs/metrics/README.md`](docs/metrics/README.md).</sub>",
 }
 
-FOOTNOTES = {
-    "zh": "<sub>数据日期 %s，由 `tools/metrics.py --write-readme` 从 "
-          "[`docs/metrics/history.csv`](docs/metrics/history.csv) 生成。"
-          "取不到写 —，不写 0；口径见 [`docs/metrics/README.md`](docs/metrics/README.md)。</sub>",
-    "en": "<sub>Data date %s, generated by `tools/metrics.py --write-readme` from "
-          "[`docs/metrics/history.csv`](docs/metrics/history.csv). "
-          "Missing values are —, never 0; definitions in [`docs/metrics/README.md`](docs/metrics/README.md).</sub>",
+CHART_ALT = {
+    "zh": "下载量与仓库浏览的逐日曲线",
+    "en": "Daily downloads and repository views",
 }
+
+
+def render_block(rows, lang="zh"):
+    """README 里那一段：四枚徽章 + 一张图 + 一行口径。数字全部来自 history.csv。"""
+    if not rows:
+        return "<sub>还没有历史。</sub>"
+    zh = lang == "zh"
+    badges = " ".join(
+        '![%s](docs/metrics/%s)' % (name.split(".")[0].replace("badge-", ""), name)
+        for name in ("badge-downloads.svg", "badge-hf.svg", "badge-views.svg", "badge-stars.svg"))
+    last = max(r["date"] for r in rows)
+    return "\n".join([
+        badges,
+        "",
+        "![%s](docs/metrics/stats.svg)" % CHART_ALT[lang],
+        "",
+        CHART_NOTE[lang] % last,
+    ])
 
 
 def by_series(rows):
@@ -366,39 +593,6 @@ def point_value(days, date):
     return None
 
 
-def render_block(rows, lang="zh"):
-    """把历史压成 README 里的那张表。数字全来自 history.csv，不在这里算别的。"""
-    series = by_series(rows)
-    if not rows:
-        return "<sub>还没有历史。</sub>"
-    last = max(r["date"] for r in rows)
-    base_date = (dt.date.fromisoformat(last) - dt.timedelta(days=7)).isoformat()
-
-    def cell(v):
-        return "—" if v is None else str(v)
-
-    def delta(cur, old):
-        if cur is None or old is None:
-            return "—"
-        d = cur - old
-        return ("+%d" % d) if d > 0 else str(d)
-
-    out = list(HEADERS[lang])
-    for source, metric, how, zh, en in SLOTS:
-        days = series.get((source, metric), {})
-        if how == "window14":
-            cur = window_sum(days, last, 14)
-            old = window_sum(days, base_date, 14)
-        else:
-            cur = point_value(days, last)
-            old = point_value(days, base_date)
-        out.append("| %s | %s | %s | %s |" % (zh if lang == "zh" else en,
-                                              cell(cur), cell(old), delta(cur, old)))
-    out.append("")
-    out.append(FOOTNOTES[lang] % last)
-    return "\n".join(out)
-
-
 def update_readme(path, block):
     """只替换标记之间的内容。没有标记就不动文件，返回 False——宁可不动，也不猜结构。"""
     with open(path, encoding="utf-8", newline="") as f:
@@ -417,12 +611,14 @@ def update_readme(path, block):
 
 
 def write_readmes(rows):
+    """先出图，再写 README——README 引的就是刚写下的这几个文件。"""
+    write_charts(OUT_DIR, rows)
     changed = []
     for name, lang in (("README.md", "zh"), ("README.en.md", "en")):
         path = os.path.join(REPO_ROOT, name)
         if os.path.exists(path) and update_readme(path, render_block(rows, lang)):
             changed.append(name)
-    print("README 计数表：%s" % ("已更新 " + "、".join(changed) if changed else "无变化"))
+    print("README：%s" % ("已更新 " + "、".join(changed) if changed else "无变化"))
     return 0
 
 
@@ -472,7 +668,7 @@ def main():
     ap.add_argument("--write", action="store_true", help="写入 docs/metrics/（默认只看）")
     ap.add_argument("--report", action="store_true", help="把已记下的历史打成 Markdown 表")
     ap.add_argument("--write-readme", action="store_true",
-                    help="用已记下的历史重写 README.md / README.en.md 里的计数表（不联网）")
+                    help="用已记下的历史重画 stats.svg 与徽章，并重写 README 里那一段（不联网）")
     ap.add_argument("--date", default=dt.datetime.now(TZ).date().isoformat(),
                     help="快照日期，默认今天（UTC+8）")
     ap.add_argument("--github-token", default="")
@@ -535,6 +731,7 @@ def main():
     merged, changed = merge(old, rows, ok, args.date)
     write_history(HISTORY, merged)
     write_badges(OUT_DIR, merged, args.date)
+    write_charts(OUT_DIR, merged)
     print("\n已写入 docs/metrics/history.csv：共 %d 行，本次新增/更新 %d 行" % (len(merged), changed))
     return 1 if (args.strict and bad) else 0
 
