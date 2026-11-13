@@ -431,7 +431,7 @@ def _delta_text(cur, old, lang):
 
 def render_stats_svg(rows, lang="zh"):
     """README 里那张图：Release 下载 / HF 下载 / 仓库浏览。"""
-    W, P, GAP, PW = 880, 22, 19, 266
+    W, P, GAP, PW = 880, 22, 28, 260
     H = 224
     if not rows:
         return ('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="60" viewBox="0 0 %d 60">'
