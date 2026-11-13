@@ -249,6 +249,10 @@ Lite 既是「96 MB 低配档」也是「抗抄袭」的论据（见 §3），�
    | `request_space_hardware("zero-a10g")` | **402** Payment Required |
    | `restart_space(factory_reboot=True)` | 返回 ok，但 stage 始终 `PAUSED / hardware=None` |
 
+   这三条都是账户层的门，与模型体积无关：229 MiB int8 在 2 vCPU 上跑得动，本机 2 线程 RTF 0.081–0.100，
+   比任何 GPU 方案的要求都低。所以别把结论记成「我们的模型太重，Space 跑不了」——记成
+   「免费 Personal 账号开不出 Gradio 容器」。两者的后续动作完全不同：前者要换模型或换平台，后者只是升级账户。
+
    官方 Spaces Overview 原文：「Static Spaces are free for everyone. **Gradio and Docker Spaces run on compute
    and require a paid plan to create: PRO for personal accounts**」。所以当前的取舍是：
    Space 用 `sdk: static`（免费、不占算力），页面放实测输出与演示视频，**不放可交互 demo**；

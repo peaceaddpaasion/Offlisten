@@ -15,8 +15,16 @@ short_description: 100% offline ASR for meetings, local, no upload
 
 这个 Space 是静态证据页：五个语种的实测输出、两段演示视频，以及一张端侧 ASR 运行时选型矩阵。
 
-不放可交互 demo，原因是免费档跑不了 Gradio 容器：`cpu-basic` 返回配额错误，`zero-a10g` 返回 402，
-官方文档写明 Gradio / Docker Space 需要付费计划。转写本来也要在本地跑 229 MiB 的模型。
+不放可交互 demo，卡的是账户层级，不是算力：免费 Personal 账号建 Gradio / Docker Space 需要付费计划
+（官方原文 *Static Spaces are free for everyone. Gradio and Docker Spaces run on compute and require a paid plan*）。
+实测 `restart_space`（cpu-basic）返回 403 `You've reached your cpu-basic quota limit`，`zero-a10g` 返回 402。
+
+这一点容易反过来推：229 MiB 的 int8 模型在 2 vCPU 上完全跑得动（本机 2 线程 RTF 0.081–0.100），
+要的算力比任何 GPU 方案都低。所以「跑不动」从头到尾都不是技术判断——是开不出 Gradio 容器。
+
+真升级到 PRO 之后，建议不要把现在的页面换成 `gr.Blocks` 控件：保留 `index.html`，
+用一条自定义路由把 `/` 指过去，再加一个 `POST /api/transcribe` 给上传框调。
+页面还是这个页面，只是多一个能真传音频的入口。`app.py` 里那套转写逻辑可以直接搬过去。
 
 ## 目录里有什么
 
