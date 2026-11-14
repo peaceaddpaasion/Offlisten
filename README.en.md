@@ -136,7 +136,7 @@ The extension resolves to the repository, the engine resolves to the working tre
 
 ![Daily downloads and repository views](docs/metrics/stats.svg)
 
-<sub>Data through 2026-11-13. Missing days break the line instead of dropping to 0; definitions in [`docs/metrics/README.md`](docs/metrics/README.md).</sub>
+<sub>Data through 2026-11-14. Missing days break the line instead of dropping to 0; definitions in [`docs/metrics/README.md`](docs/metrics/README.md).</sub>
 <!-- metrics:end -->
 
 ## Docs

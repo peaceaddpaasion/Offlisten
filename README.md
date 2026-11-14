@@ -146,7 +146,7 @@ node tools/contract_check.js --discovery D:\projects\whisper\web_live.json
 
 ![下载量与仓库浏览的逐日曲线](docs/metrics/stats.svg)
 
-<sub>数据截至 2026-11-13。缺数据的日子断线，不补 0；口径见 [`docs/metrics/README.md`](docs/metrics/README.md)。</sub>
+<sub>数据截至 2026-11-14。缺数据的日子断线，不补 0；口径见 [`docs/metrics/README.md`](docs/metrics/README.md)。</sub>
 <!-- metrics:end -->
 
 ## 文档
